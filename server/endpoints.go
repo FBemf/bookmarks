@@ -80,7 +80,7 @@ func editBookmark(templates *templates.Templates, ds *datastore.Datastore) httpr
 	}
 }
 
-func submitEditedBookmark(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
+func submitEditedBookmark(ds *datastore.Datastore, forward httprouter.Handle) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		bookmarkIdParam := params[0].Value
 		id, err := strconv.Atoi(bookmarkIdParam)
@@ -110,23 +110,11 @@ func submitEditedBookmark(templates *templates.Templates, ds *datastore.Datastor
 			log.Printf("updating bookmark %d: %s", id, err)
 			return
 		}
-		bookmark, err := ds.GetBookmark(id)
-		if err != nil {
-			errorPage(resp, http.StatusInternalServerError)
-			log.Printf("fetching updated bookmark %d: %s", id, err)
-			return
-		}
-		err = templates.ViewBookmark.ExecuteTemplate(resp, "base", bookmark)
-		if err != nil {
-			errorPage(resp, http.StatusInternalServerError)
-			log.Printf("writing template: %v", err)
-			return
-		}
-		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
+		forward(resp, req, params)
 	}
 }
 
-func submitNewBookmark(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
+func submitNewBookmark(ds *datastore.Datastore, forward httprouter.Handle) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		err := req.ParseForm()
 		if err != nil {
@@ -140,23 +128,17 @@ func submitNewBookmark(templates *templates.Templates, ds *datastore.Datastore) 
 			errorPage(resp, http.StatusBadRequest)
 			return
 		}
-		bookmark, err := ds.CreateBookmark(name, url, description)
+		_, err = ds.CreateBookmark(name, url, description)
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
 			log.Printf("adding new bookmark: %v", err)
 			return
 		}
-		err = templates.InsertedBookmark.ExecuteTemplate(resp, "base", bookmark)
-		if err != nil {
-			errorPage(resp, http.StatusInternalServerError)
-			log.Printf("writing template: %v", err)
-			return
-		}
-		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
+		forward(resp, req, params)
 	}
 }
 
-func deleteBookmark(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
+func deleteBookmark(ds *datastore.Datastore, forward httprouter.Handle) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		bookmarkIdParam := params[0].Value
 		id, err := strconv.Atoi(bookmarkIdParam)
@@ -170,13 +152,7 @@ func deleteBookmark(templates *templates.Templates, ds *datastore.Datastore) htt
 			log.Printf("deleting template %d: %v", id, err)
 			return
 		}
-		err = templates.DeletedBookmark.ExecuteTemplate(resp, "base", id)
-		if err != nil {
-			errorPage(resp, http.StatusInternalServerError)
-			log.Printf("writing template: %v", err)
-			return
-		}
-		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
+		forward(resp, req, params)
 	}
 }
 
