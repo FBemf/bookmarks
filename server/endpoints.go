@@ -128,7 +128,7 @@ func submitNewBookmark(ds *datastore.Datastore, forward httprouter.Handle) httpr
 			errorPage(resp, http.StatusBadRequest)
 			return
 		}
-		_, err = ds.CreateBookmark(name, url, description)
+		err = ds.CreateBookmark(name, url, description)
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
 			log.Printf("adding new bookmark: %v", err)

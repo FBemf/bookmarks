@@ -1,0 +1,82 @@
+{{ template "base" . }}
+
+{{ define "head" }}
+<title>Bookmarks</title>
+<script src="https://unpkg.com/stimulus/dist/stimulus.umd.js"></script>
+<script>
+    (() => {
+        const application = Stimulus.Application.start()
+
+        application.register("new-bookmark", class extends Stimulus.Controller {
+            static get targets() {
+                return ["form", "showButton", "hideButton"]
+            }
+
+            show() {
+                this.formTarget.style.display = ""
+                this.showButtonTarget.style.display = "none"
+                this.hideButtonTarget.style.display = ""
+            }
+
+            hide() {
+                this.formTarget.style.display = "none"
+                this.showButtonTarget.style.display = ""
+                this.hideButtonTarget.style.display = "none"
+            }
+        })
+
+        application.register("bookmark-editor", class extends Stimulus.Controller {
+            static get targets() {
+                return ["deletePrimary", "deleteYN"]
+            }
+
+            delete() {
+                this.deletePrimaryTarget.style.display = "none"
+                this.deleteYNTarget.style.display = ""
+            }
+
+            deleteCancel() {
+                this.deletePrimaryTarget.style.display = ""
+                this.deleteYNTarget.style.display = "none"
+            }
+        })
+    })()
+</script>
+{{ end }}
+
+{{ define "body" }}
+<h1>Bookmarks</h1>
+
+<turbo-frame id="list">
+    <div data-controller="new-bookmark">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Recent</h2>
+            <div>
+                <button data-new-bookmark-target="showButton" data-action="click->new-bookmark#show">New</button>
+                <button data-new-bookmark-target="hideButton" data-action="click->new-bookmark#hide"
+                    style="display: none">Cancel</button>
+            </div>
+        </div>
+        <div data-new-bookmark-target="form" class=bookmark-entry style="display: none">
+            <form method=POST action="/index/">
+                <input type=text name=name placeholder="Name" value="" autocomplete=off>
+                <input type=text name=url placeholder="https://www.example.com" value="" autocomplete=off>
+                <input type=text name=description placeholder="Description" value="" autocomplete=off>
+                <!--<button id=scrape_desc>Scrape description</button>-->
+                <input type=submit value="Bookmark">
+            </form>
+        </div>
+    </div>
+    {{ range .Bookmarks }}
+    <turbo-frame id="entry-{{ .Id }}">
+        <div class=bookmark-entry>
+            <strong><a href={{ .Url }}>{{ .Name }}</a></strong> —
+            {{ .Description }}
+            <div style="float: right">
+                <a href="/index/{{ .Id }}/edit/"><button>Edit</button></a>
+            </div>
+        </div>
+    </turbo-frame>
+    {{ end }}
+</turbo-frame>
+{{ end }}

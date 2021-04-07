@@ -37,16 +37,15 @@ func (ds *Datastore) GetBookmark(id int) (Bookmark, error) {
 	return result, nil
 }
 
-func (ds *Datastore) CreateBookmark(name, url, description string) (Bookmark, error) {
+func (ds *Datastore) CreateBookmark(name, url, description string) error {
 	date := time.Now().UTC()
-	var id int
-	err := ds.db.QueryRow(`insert into bookmark (name, date, url, description) values (?, ?, ?, ?) returning id`,
-		name, date, url, description).
-		Scan(&id)
+	_, err := ds.db.Exec(
+		`insert into bookmark (name, date, url, description) values (?, ?, ?, ?)`,
+		name, date, url, description)
 	if err != nil {
-		return Bookmark{}, fmt.Errorf("inserting new bookmark: %w", err)
+		return fmt.Errorf("inserting new bookmark: %w", err)
 	}
-	return Bookmark{Id: id, Name: name, Url: url, Description: description, Date: date}, nil
+	return nil
 }
 
 func (ds *Datastore) UpdateBookmark(id int, name, url, description string) error {

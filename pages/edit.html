@@ -1,0 +1,49 @@
+{{ template "base" . }}
+
+{{ define "head" }}
+<title>Edit {{ .Name }}</title>
+<script src="https://unpkg.com/stimulus/dist/stimulus.umd.js"></script>
+<script>
+    (() => {
+        const application = Stimulus.Application.start()
+
+        application.register("bookmark-editor", class extends Stimulus.Controller {
+            static get targets() {
+                return ["deletePrimary", "deleteYN"]
+            }
+
+            delete() {
+                this.deletePrimaryTarget.style.display = "none"
+                this.deleteYNTarget.style.display = ""
+            }
+
+            deleteCancel() {
+                this.deletePrimaryTarget.style.display = ""
+                this.deleteYNTarget.style.display = "none"
+            }
+        })
+    })()
+</script>
+{{ end }}
+
+{{ define "body" }}
+<h1>Editing {{ .Name }}</h1>
+
+<turbo-frame id="entry-{{ .Id }}">
+    <div data-controller="bookmark-editor" class=bookmark-entry>
+        <form method=PUT action="/index/{{ .Id }}/edit/">
+            <input type=text name=name placeholder="Name" value="{{ .Name }}" autocomplete=off>
+            <input type=text name=url placeholder="https://www.example.com" value="{{ .Url }}" autocomplete=off>
+            <input type=text name=description placeholder="Description" value="{{ .Description }}" autocomplete=off>
+            <!--<button id=scrape_desc>Scrape description</button>-->
+            <input type=submit value="Done">
+        </form>
+        <button data-bookmark-editor-target="deletePrimary" data-action="click->bookmark-editor#delete">Delete</button>
+        <form data-bookmark-editor-target="deleteYN" method=DELETE action="/index/{{ .Id }}/" style="display: none">
+            Are you sure?&nbsp;
+            <button>Delete</button></a>&nbsp;
+            <button type=button data-action="click->bookmark-editor#deleteCancel">Cancel</button>
+        </form>
+    </div>
+</turbo-frame>
+{{ end }}
