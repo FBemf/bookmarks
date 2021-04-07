@@ -58,11 +58,10 @@
             </div>
         </div>
         <div data-new-bookmark-target="form" class=bookmark-entry style="display: none">
-            <form method=POST action="/index/">
+            <form method=POST action="/index/create">
                 <input type=text name=name placeholder="Name" value="" autocomplete=off>
                 <input type=text name=url placeholder="https://www.example.com" value="" autocomplete=off>
                 <input type=text name=description placeholder="Description" value="" autocomplete=off>
-                <!--<button id=scrape_desc>Scrape description</button>-->
                 <input type=submit value="Bookmark">
             </form>
         </div>
@@ -73,10 +72,26 @@
             <strong><a href={{ .Url }}>{{ .Name }}</a></strong> —
             {{ .Description }}
             <div style="float: right">
-                <a href="/index/{{ .Id }}/edit/"><button>Edit</button></a>
+                <a href="/index/edit/{{ .Id }}"><button>Edit</button></a>
             </div>
         </div>
     </turbo-frame>
     {{ end }}
+
+    <p>
+        {{ if ne .Pager.First "" }}
+        <a href="/index?page={{ .Pager.First }}">{{ .Pager.First }}</a> …
+        {{ end }}
+        {{ range .Pager.Prev }}
+        <a href="/index?page={{ . }}">{{ . }}</a>
+        {{ end }}
+        <strong>{{ .Pager.Current }}</strong>
+        {{ range .Pager.Next }}
+        <a href="/index?page={{ . }}">{{ . }}</a>
+        {{ end }}
+        {{ if ne .Pager.Last "" }}
+        … <a href="/index?page={{ .Pager.Last }}">{{ .Pager.Last }}</a>
+        {{ end }}
+    </p>
 </turbo-frame>
 {{ end }}

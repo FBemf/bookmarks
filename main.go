@@ -4,13 +4,12 @@ import (
 	"embed"
 	"flag"
 	"io/fs"
-	"log"
-	"net/http"
-	"strconv"
-
 	"local/bookmarks/datastore"
 	"local/bookmarks/server"
 	"local/bookmarks/templates"
+	"log"
+	"net/http"
+	"strconv"
 )
 
 //go:embed pages

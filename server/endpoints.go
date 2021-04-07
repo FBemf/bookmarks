@@ -7,24 +7,61 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 )
 
+const PAGE_SIZE = 2       // 25
+const PAGER_SIDE_SIZE = 2 // 5
+
 type indexData struct {
 	Bookmarks []datastore.Bookmark
+	Pager     pager
+}
+
+type pager struct {
+	First   string
+	Prev    []string
+	Current string
+	Next    []string
+	Last    string
 }
 
 func index(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		bookmarks, err := ds.GetRecentBookmarks(25)
+		err := req.ParseForm()
+		if err != nil {
+			errorPage(resp, http.StatusBadRequest)
+			return
+		}
+		pageString := req.Form.Get("page")
+		var page int
+		if pageString == "" {
+			page = 1
+		} else {
+			page, err = strconv.Atoi(pageString)
+			if err != nil || page < 1 {
+				errorPage(resp, http.StatusBadRequest)
+				return
+			}
+		}
+
+		bookmarks, err := ds.GetRecentBookmarks(PAGE_SIZE, PAGE_SIZE*uint(page-1))
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
 			log.Printf("getting recent bookmarks: %v", err)
 			return
 		}
+		numPages, err := ds.GetNumBookmarks()
+		if err != nil {
+			errorPage(resp, http.StatusInternalServerError)
+			log.Printf("getting number of recent bookmarks: %v", err)
+			return
+		}
+		pager := createPager(page, int(numPages+PAGE_SIZE-1)/PAGE_SIZE, PAGER_SIDE_SIZE)
 		err = templates.Index.ExecuteTemplate(resp, "base",
-			indexData{bookmarks})
+			indexData{bookmarks, pager})
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
 			log.Printf("writing template: %v", err)
@@ -104,6 +141,7 @@ func submitEditedBookmark(ds *datastore.Datastore, forward httprouter.Handle) ht
 			errorPage(resp, http.StatusBadRequest)
 			return
 		}
+		url = ensureProtocol(url)
 		err = ds.UpdateBookmark(id, name, url, description)
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
@@ -128,6 +166,7 @@ func submitNewBookmark(ds *datastore.Datastore, forward httprouter.Handle) httpr
 			errorPage(resp, http.StatusBadRequest)
 			return
 		}
+		url = ensureProtocol(url)
 		err = ds.CreateBookmark(name, url, description)
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
@@ -158,4 +197,37 @@ func deleteBookmark(ds *datastore.Datastore, forward httprouter.Handle) httprout
 
 func errorPage(resp http.ResponseWriter, code int) {
 	http.Error(resp, fmt.Sprintf("%d %s", code, http.StatusText(code)), code)
+}
+
+func ensureProtocol(url string) string {
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		url = "https://" + url
+	}
+	return url
+}
+
+func createPager(current, last, sideSize int) pager {
+	var p pager
+	p.Current = strconv.Itoa(current)
+	if current <= sideSize+2 {
+		for i := 1; i < current; i += 1 {
+			p.Prev = append(p.Prev, strconv.Itoa(i))
+		}
+	} else {
+		p.First = "1"
+		for i := current - sideSize; i < current; i += 1 {
+			p.Prev = append(p.Prev, strconv.Itoa(i))
+		}
+	}
+	if current >= last-(sideSize+1) {
+		for i := current + 1; i <= last; i += 1 {
+			p.Next = append(p.Next, strconv.Itoa(i))
+		}
+	} else {
+		p.Last = strconv.Itoa(last)
+		for i := current + 1; i <= current+sideSize; i += 1 {
+			p.Next = append(p.Next, strconv.Itoa(i))
+		}
+	}
+	return p
 }

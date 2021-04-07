@@ -31,10 +31,7 @@ func (ds *Datastore) GetBookmark(id int) (Bookmark, error) {
 	var result Bookmark
 	err := ds.db.QueryRow(`select * from bookmark where id=?`, id).
 		Scan(&result.Id, &result.Name, &result.Url, &result.Date, &result.Description)
-	if err != nil {
-		return result, fmt.Errorf("fetching bookmark: %w", err)
-	}
-	return result, nil
+	return result, err
 }
 
 func (ds *Datastore) CreateBookmark(name, url, description string) error {
@@ -42,31 +39,22 @@ func (ds *Datastore) CreateBookmark(name, url, description string) error {
 	_, err := ds.db.Exec(
 		`insert into bookmark (name, date, url, description) values (?, ?, ?, ?)`,
 		name, date, url, description)
-	if err != nil {
-		return fmt.Errorf("inserting new bookmark: %w", err)
-	}
-	return nil
+	return err
 }
 
 func (ds *Datastore) UpdateBookmark(id int, name, url, description string) error {
 	_, err := ds.db.Exec(`update bookmark set name=?, url=?, description=? where id=?`, name, url, description, id)
-	if err != nil {
-		return fmt.Errorf("updating bookmark with id %d: %w", id, err)
-	}
-	return nil
+	return err
 }
 
 func (ds *Datastore) DeleteBookmark(id int) error {
 	_, err := ds.db.Exec(`delete from bookmark where id=?`, id)
-	if err != nil {
-		return fmt.Errorf("updating bookmark with id %d: %w", id, err)
-	}
-	return nil
+	return err
 }
 
-func (ds *Datastore) GetRecentBookmarks(number uint) ([]Bookmark, error) {
+func (ds *Datastore) GetRecentBookmarks(number, offset uint) ([]Bookmark, error) {
 	result := make([]Bookmark, 0, number)
-	rows, err := ds.db.Query(`select * from bookmark order by date desc limit ?`, number)
+	rows, err := ds.db.Query(`select * from bookmark order by date desc limit ? offset ?`, number, offset)
 	if err != nil {
 		return result, fmt.Errorf("fetching bookmarks: %w", err)
 	}
@@ -79,4 +67,10 @@ func (ds *Datastore) GetRecentBookmarks(number uint) ([]Bookmark, error) {
 		result = append(result, b)
 	}
 	return result, nil
+}
+
+func (ds *Datastore) GetNumBookmarks() (uint, error) {
+	var count uint
+	err := ds.db.QueryRow(`select count(*) from bookmark count`).Scan(&count)
+	return count, err
 }

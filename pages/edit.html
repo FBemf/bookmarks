@@ -31,15 +31,14 @@
 
 <turbo-frame id="entry-{{ .Id }}">
     <div data-controller="bookmark-editor" class=bookmark-entry>
-        <form method=PUT action="/index/{{ .Id }}/edit/">
+        <form method=POST action="/index/edit/{{ .Id }}">
             <input type=text name=name placeholder="Name" value="{{ .Name }}" autocomplete=off>
             <input type=text name=url placeholder="https://www.example.com" value="{{ .Url }}" autocomplete=off>
             <input type=text name=description placeholder="Description" value="{{ .Description }}" autocomplete=off>
-            <!--<button id=scrape_desc>Scrape description</button>-->
             <input type=submit value="Done">
         </form>
         <button data-bookmark-editor-target="deletePrimary" data-action="click->bookmark-editor#delete">Delete</button>
-        <form data-bookmark-editor-target="deleteYN" method=DELETE action="/index/{{ .Id }}/" style="display: none">
+        <form data-bookmark-editor-target="deleteYN" method=POST action="/index/delete/{{ .Id }}" style="display: none">
             Are you sure?&nbsp;
             <button>Delete</button></a>&nbsp;
             <button type=button data-action="click->bookmark-editor#deleteCancel">Cancel</button>
