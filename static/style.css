@@ -1,3 +1,6 @@
+/**
+ * Generic types
+ */
 body {
     margin: 40px auto;
     max-width: 650px;
@@ -10,7 +13,7 @@ h1, h2, h3 {
     line-height: 1.2;
 }
 pre {
-    background-color: #eee;
+    background-color: #ddd;
     padding: 20px 30px;
     white-space: pre-wrap;
     word-wrap: break-anywhere;
@@ -19,4 +22,14 @@ textarea {
     width: 500px;
     height: 200px;
     font-size: inherit;
+}
+
+/**
+ * Custom Types
+ */
+
+.bookmark-entry {
+    background-color: #ddd;
+    padding: 3% 4%;
+    margin: 5% 0%;
 }

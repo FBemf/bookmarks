@@ -1,9 +1,11 @@
 -- initial schema
 
 CREATE TABLE bookmark (
-    id      INTEGER NOT NULL PRIMARY KEY,
-    url     TEXT,
-    summary TEXT
+    id          INTEGER NOT NULL PRIMARY KEY,
+    name        TEXT,
+    url         TEXT,
+    date        DATETIME,
+    description  TEXT
 );
 
 CREATE TABLE tag (

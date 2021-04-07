@@ -48,7 +48,7 @@ func (ds *Datastore) RunMigrations(migrations fs.FS) (uint, error) {
 	latestMigration := migration{"", 0}
 
 	if len(migrationList) == 0 {
-		log.Println("creating database")
+		log.Println("Creating database")
 	} else {
 		for _, m := range migrationList {
 			migrationSet[m] = false

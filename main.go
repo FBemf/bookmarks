@@ -47,7 +47,7 @@ func main() {
 		log.Printf("Ran %d migrations", n)
 	}
 
-	router := server.MakeRouter(templates, static)
+	router := server.MakeRouter(templates, static, &datastore)
 	log.Printf("Serving HTTP on port %d\n", config.port)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(int(config.port)), router))
 }
