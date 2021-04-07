@@ -3,7 +3,6 @@ package main
 import (
 	"embed"
 	"flag"
-	"html/template"
 	"io/fs"
 	"log"
 	"net/http"
@@ -11,9 +10,10 @@ import (
 
 	"local/bookmarks/datastore"
 	"local/bookmarks/server"
+	"local/bookmarks/templates"
 )
 
-//go:embed templates
+//go:embed pages
 var templateFS embed.FS
 
 //go:embed static
@@ -25,10 +25,8 @@ var schemaFS embed.FS
 func main() {
 	config := parseArgs()
 
-	templates, err := template.ParseFS(templateFS, "templates/*")
-	if err != nil {
-		log.Fatal(err)
-	}
+	templates := templates.CreateTemplates(templateFS)
+
 	static, err := fs.Sub(staticFS, "static")
 	if err != nil {
 		log.Fatal(err)
@@ -47,7 +45,7 @@ func main() {
 		log.Printf("Ran %d migrations", n)
 	}
 
-	router := server.MakeRouter(templates, static, &datastore)
+	router := server.MakeRouter(&templates, static, &datastore)
 	log.Printf("Serving HTTP on port %d\n", config.port)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(int(config.port)), router))
 }

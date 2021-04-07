@@ -1,20 +1,25 @@
 package server
 
 import (
-	"html/template"
 	"io/fs"
-	"local/bookmarks/datastore"
 	"log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+
+	"local/bookmarks/datastore"
+	"local/bookmarks/templates"
 )
 
-func MakeRouter(templates *template.Template, static fs.FS, ds *datastore.Datastore) http.Handler {
+func MakeRouter(templates *templates.Templates, static fs.FS, ds *datastore.Datastore) http.Handler {
 	router := httprouter.New()
 	router.Handler(http.MethodGet, "/", http.RedirectHandler("/index.html", http.StatusTemporaryRedirect))
 	router.GET("/index.html", index(templates, ds))
-	router.POST("/actions/submit", newBookmark(templates, ds, index(templates, ds)))
+	router.GET("/edit/:id", editBookmark(templates, ds))
+	router.GET("/bookmark/:id", viewBookmark(templates, ds))
+	router.POST("/bookmark/", submitNewBookmark(templates, ds))
+	router.PUT("/bookmark/:id", submitEditedBookmark(templates, ds))
+	router.DELETE("/bookmark/:id", deleteBookmark(templates, ds))
 	router.ServeFiles("/static/*filepath", http.FS(static))
 	return RequestLogger{router}
 }
@@ -24,6 +29,6 @@ type RequestLogger struct {
 }
 
 func (rl RequestLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Request %s %s", r.Method, r.URL.Path)
+	log.Printf("%s %s", r.Method, r.URL.Path)
 	rl.h.ServeHTTP(w, r)
 }

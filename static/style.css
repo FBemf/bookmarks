@@ -18,11 +18,6 @@ pre {
     white-space: pre-wrap;
     word-wrap: break-anywhere;
 }
-textarea {
-    width: 500px;
-    height: 200px;
-    font-size: inherit;
-}
 
 /**
  * Custom Types

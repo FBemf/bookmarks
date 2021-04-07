@@ -27,16 +27,45 @@ func Connect(file string) (Datastore, error) {
 	return Datastore{db}, nil
 }
 
-func (ds *Datastore) NewBookmark(name, url, description string) error {
-	date := time.Now().UTC()
-	_, err := ds.db.Exec(`insert into bookmark (name, date, url, description) values (?, ?, ?, ?)`, name, date, url, description)
+func (ds *Datastore) GetBookmark(id int) (Bookmark, error) {
+	var result Bookmark
+	err := ds.db.QueryRow(`select * from bookmark where id=?`, id).
+		Scan(&result.Id, &result.Name, &result.Url, &result.Date, &result.Description)
 	if err != nil {
-		return fmt.Errorf("inserting new bookmark: %w", err)
+		return result, fmt.Errorf("fetching bookmark: %w", err)
+	}
+	return result, nil
+}
+
+func (ds *Datastore) CreateBookmark(name, url, description string) (Bookmark, error) {
+	date := time.Now().UTC()
+	var id int
+	err := ds.db.QueryRow(`insert into bookmark (name, date, url, description) values (?, ?, ?, ?) returning id`,
+		name, date, url, description).
+		Scan(&id)
+	if err != nil {
+		return Bookmark{}, fmt.Errorf("inserting new bookmark: %w", err)
+	}
+	return Bookmark{Id: id, Name: name, Url: url, Description: description, Date: date}, nil
+}
+
+func (ds *Datastore) UpdateBookmark(id int, name, url, description string) error {
+	_, err := ds.db.Exec(`update bookmark set name=?, url=?, description=? where id=?`, name, url, description, id)
+	if err != nil {
+		return fmt.Errorf("updating bookmark with id %d: %w", id, err)
 	}
 	return nil
 }
 
-func (ds *Datastore) RecentBookmarks(number uint) ([]Bookmark, error) {
+func (ds *Datastore) DeleteBookmark(id int) error {
+	_, err := ds.db.Exec(`delete from bookmark where id=?`, id)
+	if err != nil {
+		return fmt.Errorf("updating bookmark with id %d: %w", id, err)
+	}
+	return nil
+}
+
+func (ds *Datastore) GetRecentBookmarks(number uint) ([]Bookmark, error) {
 	result := make([]Bookmark, 0, number)
 	rows, err := ds.db.Query(`select * from bookmark order by date desc limit ?`, number)
 	if err != nil {
