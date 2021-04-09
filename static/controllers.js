@@ -42,6 +42,9 @@
         }
 
         addTag() {
+            if (event.type == "keydown" && event.key != "Enter") {
+                return
+            }
             let name = this.tagNameTarget.value
             if (name != "") {
                 this.tagNameTarget.value = ""

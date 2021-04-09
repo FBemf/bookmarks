@@ -29,7 +29,8 @@
                     {{ end }}
                 </ul>
             </form>
-            <input data-bookmark-tagger-target="tagName" type=text placeholder="Tag name" value="" autocomplete=off>
+            <input data-bookmark-tagger-target="tagName" data-action="keydown->bookmark-tagger#addTag" type=text
+                placeholder="Tag name" value="" autocomplete=off>
             <button type=button data-action="click->bookmark-tagger#addTag">Add tag</button>
         </div>
         <div data-controller="bookmark-deleter">
