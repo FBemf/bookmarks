@@ -11,13 +11,15 @@
 
 <turbo-frame id="entry-{{ .Bookmark.Id }}">
     <div class=bookmark-entry>
-        <form method=POST action="/bookmarks/edit/{{ .Bookmark.Id }}{{ .UrlParams | paramQueryString }}">
-            <input type=text name=name placeholder="Name" value="{{ .Bookmark.Name }}" autocomplete=off>
-            <input type=text name=url placeholder="https://www.example.com" value="{{ .Bookmark.Url }}"
-                autocomplete=off>
-            <input type=text name=description placeholder="Description" value="{{ .Bookmark.Description }}"
-                autocomplete=off>
-            <div data-controller="bookmark-tagger">
+        <div data-controller="bookmark-tagger">
+            <form method=POST action="/bookmarks/edit/{{ .Bookmark.Id }}{{ .UrlParams | paramQueryString }}">
+                <input type=text name=name placeholder="Name" value="{{ .Bookmark.Name }}" autocomplete=off>
+                <input type=text name=url placeholder="https://www.example.com" value="{{ .Bookmark.Url }}"
+                    autocomplete=off>
+                <input type=text name=description placeholder="Description" value="{{ .Bookmark.Description }}"
+                    autocomplete=off>
+                <input type=submit value="Update">
+                <a href="/bookmarks/view/{{ .Bookmark.Id }}{{ .UrlParams | paramQueryString }}">Cancel</a>
                 <ul data-bookmark-tagger-target="tagList">
                     {{ range .Bookmark.Tags }}
                     <li data-controller="tag" data-tag-target="self">
@@ -26,11 +28,10 @@
                     </li>
                     {{ end }}
                 </ul>
-                <input data-bookmark-tagger-target="tagName" type=text placeholder="Tag name" value="" autocomplete=off>
-                <button type=button data-action="click->bookmark-tagger#addTag">Add tag</button>
-            </div>
-            <input type=submit value="Done">
-        </form>
+            </form>
+            <input data-bookmark-tagger-target="tagName" type=text placeholder="Tag name" value="" autocomplete=off>
+            <button type=button data-action="click->bookmark-tagger#addTag">Add tag</button>
+        </div>
         <div data-controller="bookmark-deleter">
             <button data-bookmark-deleter-target="deletePrimary"
                 data-action="click->bookmark-deleter#delete">Delete</button>
