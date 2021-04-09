@@ -46,6 +46,7 @@
 
 {{ define "body" }}
 <h1>Bookmarks</h1>
+{{ $urlParams := .UrlParams }}
 
 <turbo-frame id="list">
     <div data-controller="new-bookmark">
@@ -58,7 +59,7 @@
             </div>
         </div>
         <div data-new-bookmark-target="form" class=bookmark-entry style="display: none">
-            <form method=POST action="/index/create">
+            <form method=POST action="/bookmarks/create{{ $urlParams | paramQueryString }}">
                 <input type=text name=name placeholder="Name" value="" autocomplete=off>
                 <input type=text name=url placeholder="https://www.example.com" value="" autocomplete=off>
                 <input type=text name=description placeholder="Description" value="" autocomplete=off>
@@ -72,7 +73,7 @@
             <strong><a href={{ .Url }}>{{ .Name }}</a></strong> —
             {{ .Description }}
             <div style="float: right">
-                <a href="/index/edit/{{ .Id }}"><button>Edit</button></a>
+                <a href="/bookmarks/edit/{{ .Id }}{{ $urlParams | paramQueryString }}"><button>Edit</button></a>
             </div>
         </div>
     </turbo-frame>
@@ -80,17 +81,17 @@
 
     <p>
         {{ if ne .Pager.First "" }}
-        <a href="/index?page={{ .Pager.First }}">{{ .Pager.First }}</a> …
+        <a href="/bookmarks{{ $urlParams | paramSetPage .Pager.First | paramQueryString }}">{{ .Pager.First }}</a> …
         {{ end }}
         {{ range .Pager.Prev }}
-        <a href="/index?page={{ . }}">{{ . }}</a>
+        <a href="/bookmarks{{ $urlParams | paramSetPage . | paramQueryString }}">{{ . }}</a>
         {{ end }}
         <strong>{{ .Pager.Current }}</strong>
         {{ range .Pager.Next }}
-        <a href="/index?page={{ . }}">{{ . }}</a>
+        <a href="/bookmarks{{ $urlParams | paramSetPage . | paramQueryString }}">{{ . }}</a>
         {{ end }}
         {{ if ne .Pager.Last "" }}
-        … <a href="/index?page={{ .Pager.Last }}">{{ .Pager.Last }}</a>
+        … <a href="/bookmarks{{ $urlParams | paramSetPage .Pager.Last | paramQueryString }}">{{ .Pager.Last }}</a>
         {{ end }}
     </p>
 </turbo-frame>

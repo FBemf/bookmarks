@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"local/bookmarks/datastore"
 	"local/bookmarks/templates"
+	"local/bookmarks/urlparams"
 	"log"
 	"net/http"
 	"strconv"
@@ -12,42 +13,26 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-const PAGE_SIZE = 2       // 25
-const PAGER_SIDE_SIZE = 2 // 5
-
 type indexData struct {
 	Bookmarks []datastore.Bookmark
 	Pager     pager
+	UrlParams urlparams.UrlParams
 }
 
-type pager struct {
-	First   string
-	Prev    []string
-	Current string
-	Next    []string
-	Last    string
+type bookmarkData struct {
+	Bookmark  datastore.Bookmark
+	UrlParams urlparams.UrlParams
 }
 
 func index(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		err := req.ParseForm()
+		urlParams, err := urlparams.GetUrlParams(req)
 		if err != nil {
 			errorPage(resp, http.StatusBadRequest)
 			return
 		}
-		pageString := req.Form.Get("page")
-		var page int
-		if pageString == "" {
-			page = 1
-		} else {
-			page, err = strconv.Atoi(pageString)
-			if err != nil || page < 1 {
-				errorPage(resp, http.StatusBadRequest)
-				return
-			}
-		}
 
-		bookmarks, err := ds.GetRecentBookmarks(PAGE_SIZE, PAGE_SIZE*uint(page-1))
+		bookmarks, err := ds.GetRecentBookmarks(PAGE_SIZE, PAGE_SIZE*uint(urlParams.Page-1))
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
 			log.Printf("getting recent bookmarks: %v", err)
@@ -59,20 +44,28 @@ func index(templates *templates.Templates, ds *datastore.Datastore) httprouter.H
 			log.Printf("getting number of recent bookmarks: %v", err)
 			return
 		}
-		pager := createPager(page, int(numPages+PAGE_SIZE-1)/PAGE_SIZE, PAGER_SIDE_SIZE)
+
+		pager := createPager(urlParams.Page, int(numPages+PAGE_SIZE-1)/PAGE_SIZE, PAGER_SIDE_SIZE)
 		err = templates.Index.ExecuteTemplate(resp, "base",
-			indexData{bookmarks, pager})
+			indexData{bookmarks, pager, urlParams})
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
 			log.Printf("writing template: %v", err)
 			return
 		}
+
 		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	}
 }
 
 func viewBookmark(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		urlParams, err := urlparams.GetUrlParams(req)
+		if err != nil {
+			errorPage(resp, http.StatusBadRequest)
+			return
+		}
+
 		bookmarkIdParam := params[0].Value
 		bookmarkId, err := strconv.Atoi(bookmarkIdParam)
 		if err != nil {
@@ -84,18 +77,25 @@ func viewBookmark(templates *templates.Templates, ds *datastore.Datastore) httpr
 			errorPage(resp, http.StatusNotFound)
 			return
 		}
-		err = templates.ViewBookmark.ExecuteTemplate(resp, "base", bookmark)
+		err = templates.ViewBookmark.ExecuteTemplate(resp, "base", bookmarkData{bookmark, urlParams})
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
 			log.Printf("writing template: %v", err)
 			return
 		}
+
 		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	}
 }
 
 func editBookmark(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		urlParams, err := urlparams.GetUrlParams(req)
+		if err != nil {
+			errorPage(resp, http.StatusBadRequest)
+			return
+		}
+
 		bookmarkIdParam := params[0].Value
 		bookmarkId, err := strconv.Atoi(bookmarkIdParam)
 		if err != nil {
@@ -107,12 +107,13 @@ func editBookmark(templates *templates.Templates, ds *datastore.Datastore) httpr
 			errorPage(resp, http.StatusNotFound)
 			return
 		}
-		err = templates.EditBookmark.ExecuteTemplate(resp, "base", bookmark)
+		err = templates.EditBookmark.ExecuteTemplate(resp, "base", bookmarkData{bookmark, urlParams})
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
 			log.Printf("writing template: %v", err)
 			return
 		}
+
 		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	}
 }
@@ -204,30 +205,4 @@ func ensureProtocol(url string) string {
 		url = "https://" + url
 	}
 	return url
-}
-
-func createPager(current, last, sideSize int) pager {
-	var p pager
-	p.Current = strconv.Itoa(current)
-	if current <= sideSize+2 {
-		for i := 1; i < current; i += 1 {
-			p.Prev = append(p.Prev, strconv.Itoa(i))
-		}
-	} else {
-		p.First = "1"
-		for i := current - sideSize; i < current; i += 1 {
-			p.Prev = append(p.Prev, strconv.Itoa(i))
-		}
-	}
-	if current >= last-(sideSize+1) {
-		for i := current + 1; i <= last; i += 1 {
-			p.Next = append(p.Next, strconv.Itoa(i))
-		}
-	} else {
-		p.Last = strconv.Itoa(last)
-		for i := current + 1; i <= current+sideSize; i += 1 {
-			p.Next = append(p.Next, strconv.Itoa(i))
-		}
-	}
-	return p
 }

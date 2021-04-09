@@ -1,18 +1,18 @@
 {{ template "base" . }}
 
 {{ define "head" }}
-<title>{{ .Name }}</title>
+<title>{{ .Bookmark.Name }}</title>
 {{ end }}
 
 {{ define "body" }}
-<h1>{{ .Name }}</h1>
+<h1>{{ .Bookmark.Name }}</h1>
 
-<turbo-frame id="entry-{{ .Id }}">
+<turbo-frame id="entry-{{ .Bookmark.Id }}">
     <div class=bookmark-entry>
-        <strong><a href={{ .Url }}>{{ .Name }}</a></strong> —
-        {{ .Description }}
+        <strong><a href={{ .Bookmark.Url }}>{{ .Bookmark.Name }}</a></strong> —
+        {{ .Bookmark.Description }}
         <div style="float: right">
-            <a href="/index/edit/{{ .Id }}"><button>Edit</button></a>
+            <a href="/bookmarks/edit/{{ .Bookmark.Id }}{{ .UrlParams | paramQueryString }}"><button>Edit</button></a>
         </div>
     </div>
 </turbo-frame>
