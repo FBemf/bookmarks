@@ -3,45 +3,7 @@
 {{ define "head" }}
 <title>Bookmarks</title>
 <script src="https://unpkg.com/stimulus/dist/stimulus.umd.js"></script>
-<script>
-    (() => {
-        const application = Stimulus.Application.start()
-
-        application.register("new-bookmark", class extends Stimulus.Controller {
-            static get targets() {
-                return ["form", "showButton", "hideButton"]
-            }
-
-            show() {
-                this.formTarget.style.display = ""
-                this.showButtonTarget.style.display = "none"
-                this.hideButtonTarget.style.display = ""
-            }
-
-            hide() {
-                this.formTarget.style.display = "none"
-                this.showButtonTarget.style.display = ""
-                this.hideButtonTarget.style.display = "none"
-            }
-        })
-
-        application.register("bookmark-editor", class extends Stimulus.Controller {
-            static get targets() {
-                return ["deletePrimary", "deleteYN"]
-            }
-
-            delete() {
-                this.deletePrimaryTarget.style.display = "none"
-                this.deleteYNTarget.style.display = ""
-            }
-
-            deleteCancel() {
-                this.deletePrimaryTarget.style.display = ""
-                this.deleteYNTarget.style.display = "none"
-            }
-        })
-    })()
-</script>
+<script src="/static/controllers.js"></script>
 {{ end }}
 
 {{ define "body" }}
@@ -50,7 +12,7 @@
 <h1>Bookmarks</h1>
 
 <turbo-frame id="list">
-    <form action="/bookmarks{{ $urlParams | paramQueryString }}">
+    <form action="/bookmarks{{ $urlParams | paramQueryString }}" method=GET>
         <input type=text name=search placeholder="Search…" value="{{ $urlParams.Search }}" autocomplete=off>
         <input type=submit value="Go">
         {{ if $urlParams.Search }}
@@ -80,6 +42,12 @@
                 <input type=text name=name placeholder="Name" value="" autocomplete=off>
                 <input type=text name=url placeholder="https://www.example.com" value="" autocomplete=off>
                 <input type=text name=description placeholder="Description" value="" autocomplete=off>
+                <div data-controller="bookmark-tagger">
+                    <ul data-bookmark-tagger-target="tagList"></ul>
+                    <input data-bookmark-tagger-target="tagName" type=text placeholder="Tag name" value=""
+                        autocomplete=off>
+                    <button type=button data-action="click->bookmark-tagger#addTag">Add tag</button>
+                </div>
                 <input type=submit value="Bookmark">
             </form>
         </div>
@@ -91,6 +59,12 @@
             {{ .Description }}
             <div style="float: right">
                 <a href="/bookmarks/edit/{{ .Id }}{{ $urlParams | paramQueryString }}"><button>Edit</button></a>
+            </div>
+            <div>
+                Tags:
+                {{ range $tagIndex, $tagName := .Tags }}
+                {{ if ne $tagIndex 0 }}, {{ end }}{{ $tagName }}
+                {{ end }}
             </div>
         </div>
     </turbo-frame>

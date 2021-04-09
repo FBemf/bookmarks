@@ -165,10 +165,9 @@ func (ds *Datastore) runMigration(name migration, contents string) error {
 		return fmt.Errorf("inserting migration into log table: %s", err)
 	}
 	err = tx.Commit()
+	stop()
 	if err != nil {
-		stop()
 		return fmt.Errorf("committing migration: %s", err)
 	}
-	stop()
 	return nil
 }

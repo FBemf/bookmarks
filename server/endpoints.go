@@ -46,16 +46,14 @@ func index(templates *templates.Templates, ds *datastore.Datastore) httprouter.H
 			return
 		}
 
-		numPages, err := ds.GetNumBookmarks(query)
+		numBookmarks, err := ds.GetNumBookmarks(query)
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
 			log.Printf("getting number of bookmarks: %v", err)
 			return
 		}
 
-		log.Println(numPages)
-
-		pager := createPager(urlParams.Page, int(numPages+PAGE_SIZE-1)/PAGE_SIZE, PAGER_SIDE_SIZE)
+		pager := createPager(urlParams.Page, int(numBookmarks+PAGE_SIZE-1)/PAGE_SIZE, PAGER_SIDE_SIZE)
 		err = templates.Index.ExecuteTemplate(resp, "base",
 			indexData{bookmarks, pager, urlParams})
 		if err != nil {
@@ -82,7 +80,7 @@ func viewBookmark(templates *templates.Templates, ds *datastore.Datastore) httpr
 			errorPage(resp, http.StatusBadRequest)
 			return
 		}
-		bookmark, err := ds.GetBookmark(bookmarkId)
+		bookmark, err := ds.GetBookmark(int64(bookmarkId))
 		if err != nil {
 			errorPage(resp, http.StatusNotFound)
 			return
@@ -112,7 +110,7 @@ func editBookmark(templates *templates.Templates, ds *datastore.Datastore) httpr
 			errorPage(resp, http.StatusBadRequest)
 			return
 		}
-		bookmark, err := ds.GetBookmark(bookmarkId)
+		bookmark, err := ds.GetBookmark(int64(bookmarkId))
 		if err != nil {
 			errorPage(resp, http.StatusNotFound)
 			return
@@ -140,6 +138,7 @@ func submitEditedBookmark(ds *datastore.Datastore, forward httprouter.Handle) ht
 			errorPage(resp, http.StatusNotFound)
 			return
 		}
+
 		err = req.ParseForm()
 		if err != nil {
 			errorPage(resp, http.StatusBadRequest)
@@ -152,8 +151,10 @@ func submitEditedBookmark(ds *datastore.Datastore, forward httprouter.Handle) ht
 			errorPage(resp, http.StatusBadRequest)
 			return
 		}
+		tags := req.Form["tag"]
+
 		url = ensureProtocol(url)
-		err = ds.UpdateBookmark(id, name, url, description)
+		err = ds.UpdateBookmark(int64(id), name, url, description, tags)
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
 			log.Printf("updating bookmark %d: %s", id, err)
@@ -178,7 +179,9 @@ func submitNewBookmark(ds *datastore.Datastore, forward httprouter.Handle) httpr
 			return
 		}
 		url = ensureProtocol(url)
-		err = ds.CreateBookmark(name, url, description)
+		tags := req.Form["tag"]
+
+		err = ds.CreateBookmark(name, url, description, tags)
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
 			log.Printf("adding new bookmark: %v", err)
@@ -196,10 +199,10 @@ func deleteBookmark(ds *datastore.Datastore, forward httprouter.Handle) httprout
 			errorPage(resp, http.StatusBadRequest)
 			return
 		}
-		err = ds.DeleteBookmark(id)
+		err = ds.DeleteBookmark(int64(id))
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
-			log.Printf("deleting template %d: %v", id, err)
+			log.Printf("deleting bookmark %d: %v", id, err)
 			return
 		}
 		forward(resp, req, params)

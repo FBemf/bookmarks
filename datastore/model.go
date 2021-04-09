@@ -1,8 +1,10 @@
 package datastore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -11,11 +13,12 @@ type Datastore struct {
 }
 
 type Bookmark struct {
-	Id          int
+	Id          int64
 	Name        string
 	Date        time.Time
 	Url         string
 	Description string
+	Tags        []string
 }
 
 type QueryInfo struct {
@@ -43,29 +46,141 @@ func Connect(file string) (Datastore, error) {
 	return Datastore{db}, nil
 }
 
-func (ds *Datastore) GetBookmark(id int) (Bookmark, error) {
+func (ds *Datastore) GetBookmark(id int64) (Bookmark, error) {
 	var result Bookmark
 	err := ds.db.QueryRow(`select * from bookmark where id=?`, id).
 		Scan(&result.Id, &result.Name, &result.Url, &result.Date, &result.Description)
-	return result, err
+	if err != nil {
+		return result, fmt.Errorf("retrieving bookmark: %w", err)
+	}
+	result.Tags, err = ds.getTags(id)
+	if err != nil {
+		return result, fmt.Errorf("retrieving tags: %w", err)
+	}
+	return result, nil
 }
 
-func (ds *Datastore) CreateBookmark(name, url, description string) error {
+func (ds *Datastore) CreateBookmark(name, url, description string, tags []string) error {
 	date := time.Now().UTC()
-	_, err := ds.db.Exec(
+	ctx, stop := context.WithCancel(context.Background())
+	tx, err := ds.db.BeginTx(ctx, nil)
+	if err != nil {
+		stop()
+		return fmt.Errorf("beginning transaction: %w", err)
+	}
+
+	result, err := tx.Exec(
 		`insert into bookmark (name, date, url, description) values (?, ?, ?, ?)`,
 		name, date, url, description)
+	if err != nil {
+		stop()
+		return fmt.Errorf("inserting bookmark: %w", err)
+	}
+
+	bookmarkId, err := result.LastInsertId()
+	if err != nil {
+		stop()
+		return fmt.Errorf("getting bookmark id: %w", err)
+	}
+
+	err = setBookmarkTags(bookmarkId, tags, tx)
+	if err != nil {
+		stop()
+		return fmt.Errorf("setting tags: %w", err)
+	}
+
+	err = tx.Commit()
+	stop()
+	if err != nil {
+		return fmt.Errorf("committing transaction: %w", err)
+	}
 	return err
 }
 
-func (ds *Datastore) UpdateBookmark(id int, name, url, description string) error {
-	_, err := ds.db.Exec(`update bookmark set name=?, url=?, description=? where id=?`, name, url, description, id)
-	return err
+func setBookmarkTags(bookmarkId int64, tags []string, tx *sql.Tx) error {
+	for _, tag := range tags {
+		var exists int
+		err := tx.QueryRow(`select count(*) from tag where name = ?`, tag).Scan(&exists)
+		if err != nil {
+			return fmt.Errorf("finding whether tag %s exists: %w", tag, err)
+		}
+
+		var tagId int64
+		if exists == 0 {
+			result, err := tx.Exec(`insert or ignore into tag (name) values (?)`, tag)
+			if err != nil {
+				return fmt.Errorf("creating tag %s: %w", tag, err)
+			}
+
+			tagId, err = result.LastInsertId()
+			if err != nil {
+				return fmt.Errorf("getting tag %s id: %w", tag, err)
+			}
+		} else {
+			err = tx.QueryRow(`select id from tag where name = ?`, tag).Scan(&tagId)
+			if err != nil {
+				return fmt.Errorf("getting id of tag %s: %w", tag, err)
+			}
+		}
+
+		_, err = tx.Exec(`insert or ignore into tag_bookmark (tag, bookmark) values (?, ?)`, tagId, bookmarkId)
+		if err != nil {
+			return fmt.Errorf("tagging bookmark %d with tag %s: %w", bookmarkId, tag, err)
+		}
+	}
+
+	// clear bookmarks we didn't just insert
+	query := fmt.Sprintf(
+		`delete from tag_bookmark where bookmark = ? and tag not in (select id from tag where name in (%s))`,
+		quoteStrings(tags),
+	)
+	_, err := tx.Exec(query, bookmarkId)
+	if err != nil {
+		return fmt.Errorf("deleting extra tags: %w", err)
+	}
+
+	return nil
 }
 
-func (ds *Datastore) DeleteBookmark(id int) error {
+func (ds *Datastore) UpdateBookmark(id int64, name, url, description string, tags []string) error {
+	ctx, stop := context.WithCancel(context.Background())
+	tx, err := ds.db.BeginTx(ctx, nil)
+	if err != nil {
+		stop()
+		return fmt.Errorf("beginning transaction: %w", err)
+	}
+	_, err = tx.Exec(`update bookmark set name=?, url=?, description=? where id=?`, name, url, description, id)
+	if err != nil {
+		stop()
+		return fmt.Errorf("updating bookmark: %w", err)
+	}
+	err = setBookmarkTags(id, tags, tx)
+	if err != nil {
+		stop()
+		return fmt.Errorf("setting tags: %w", err)
+	}
+	err = tx.Commit()
+	stop()
+	if err != nil {
+		return fmt.Errorf("committing transaction: %w", err)
+	}
+	err = ds.deleteDanglingTags()
+	if err != nil {
+		return fmt.Errorf("deleting dangling tags: %w", err)
+	}
+	return nil
+}
+
+func (ds *Datastore) DeleteBookmark(id int64) error {
 	_, err := ds.db.Exec(`delete from bookmark where id=?`, id)
-	return err
+	if err != nil {
+		return fmt.Errorf("deleting bookmark: %w", err)
+	}
+	err = ds.deleteDanglingTags()
+	if err != nil {
+		return fmt.Errorf("deleting dangling tags: %w", err)
+	}
+	return nil
 }
 
 func (ds *Datastore) GetBookmarks(info QueryInfo) ([]Bookmark, error) {
@@ -101,9 +216,36 @@ func (ds *Datastore) GetBookmarks(info QueryInfo) ([]Bookmark, error) {
 		if err != nil {
 			return result, fmt.Errorf("scanning bookmark: %w", err)
 		}
+
+		b.Tags, err = ds.getTags(b.Id)
+		if err != nil {
+			return result, fmt.Errorf("getting tags for bookmark %d: %w", b.Id, err)
+		}
+
 		result = append(result, b)
 	}
 	return result, nil
+}
+
+func (ds *Datastore) getTags(bookmarkId int64) ([]string, error) {
+	rows, err := ds.db.Query(
+		`select name from tag_bookmark inner join tag on tag.id = tag_bookmark.tag where tag_bookmark.bookmark = ?`,
+		bookmarkId)
+	if err != nil {
+		return nil, fmt.Errorf("getting tags: %w", err)
+	}
+
+	tags := make([]string, 0, 10)
+	for rows.Next() {
+		var tag string
+		err = rows.Scan(&tag)
+		if err != nil {
+			return tags, fmt.Errorf("scanning bookmark: %w", err)
+		}
+
+		tags = append(tags, tag)
+	}
+	return tags, nil
 }
 
 func (ds *Datastore) GetNumBookmarks(info QueryInfo) (uint, error) {
@@ -117,4 +259,18 @@ func (ds *Datastore) GetNumBookmarks(info QueryInfo) (uint, error) {
 			Scan(&count)
 	}
 	return count, err
+}
+
+func quoteStrings(value []string) string {
+	escaped := make([]string, 0, len(value))
+	for _, s := range value {
+		escaped = append(escaped, strings.Replace(s, "'", "''", -1))
+	}
+	joined := "'" + strings.Join(escaped, "', '") + "'"
+	return joined
+}
+
+func (ds *Datastore) deleteDanglingTags() error {
+	_, err := ds.db.Exec(`delete from tag where (select count(*) from tag_bookmark where tag = id) = 0`)
+	return err
 }

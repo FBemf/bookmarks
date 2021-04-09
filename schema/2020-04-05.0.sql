@@ -10,17 +10,13 @@ CREATE TABLE bookmark (
 
 CREATE TABLE tag (
     id      INTEGER NOT NULL PRIMARY KEY,
-    name    TEXT
+    name    TEXT UNIQUE
 );
 
 CREATE TABLE tag_bookmark (
-    tag         INTEGER,
-    bookmark    INTEGER,
-    FOREIGN KEY (tag) REFERENCES tag(id),
-    FOREIGN KEY (bookmark) REFERENCES bookmark(id)
-);
-
-CREATE TABLE unread_bookmark (
-    bookmark    INTEGER PRIMARY KEY,
-    FOREIGN KEY (bookmark) REFERENCES bookmark(id)
+    tag         INTEGER NOT NULL,
+    bookmark    INTEGER NOT NULL,
+    PRIMARY KEY (tag, bookmark),
+    FOREIGN KEY (tag) REFERENCES tag(id) ON DELETE CASCADE,
+    FOREIGN KEY (bookmark) REFERENCES bookmark(id) ON DELETE CASCADE
 );
