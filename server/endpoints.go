@@ -32,18 +32,28 @@ func index(templates *templates.Templates, ds *datastore.Datastore) httprouter.H
 			return
 		}
 
-		bookmarks, err := ds.GetRecentBookmarks(PAGE_SIZE, PAGE_SIZE*uint(urlParams.Page-1))
+		query := datastore.NewQueryInfo(PAGE_SIZE)
+		query.Offset = PAGE_SIZE * uint(urlParams.Page-1)
+		query.Search = urlParams.Search
+		if urlParams.Order == urlparams.REVERSE_ORDER {
+			query.Reverse = true
+		}
+
+		bookmarks, err := ds.GetBookmarks(query)
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
-			log.Printf("getting recent bookmarks: %v", err)
+			log.Printf("getting bookmarks: %v", err)
 			return
 		}
-		numPages, err := ds.GetNumBookmarks()
+
+		numPages, err := ds.GetNumBookmarks(query)
 		if err != nil {
 			errorPage(resp, http.StatusInternalServerError)
-			log.Printf("getting number of recent bookmarks: %v", err)
+			log.Printf("getting number of bookmarks: %v", err)
 			return
 		}
+
+		log.Println(numPages)
 
 		pager := createPager(urlParams.Page, int(numPages+PAGE_SIZE-1)/PAGE_SIZE, PAGER_SIDE_SIZE)
 		err = templates.Index.ExecuteTemplate(resp, "base",

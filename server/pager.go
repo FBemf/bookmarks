@@ -1,8 +1,10 @@
 package server
 
-import "strconv"
+import (
+	"strconv"
+)
 
-const PAGE_SIZE = 15
+const PAGE_SIZE = 5
 const PAGER_SIDE_SIZE = 5
 
 type pager struct {

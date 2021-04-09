@@ -16,6 +16,8 @@ func functions() *template.Template {
 	return template.New("").
 		Funcs(template.FuncMap{
 			"paramSetPage":     urlparams.SetPage,
+			"paramSetOrder":    urlparams.SetOrder,
+			"paramSetSearch":   urlparams.SetSearch,
 			"paramQueryString": urlparams.UrlParams.QueryString,
 		})
 }

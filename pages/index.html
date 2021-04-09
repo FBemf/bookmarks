@@ -45,13 +45,30 @@
 {{ end }}
 
 {{ define "body" }}
-<h1>Bookmarks</h1>
 {{ $urlParams := .UrlParams }}
 
+<h1>Bookmarks</h1>
+
 <turbo-frame id="list">
+    <form action="/bookmarks{{ $urlParams | paramQueryString }}">
+        <input type=text name=search placeholder="Search…" value="{{ $urlParams.Search }}" autocomplete=off>
+        <input type=submit value="Go">
+        {{ if $urlParams.Search }}
+        <a href='/bookmarks{{ $urlParams | paramSetSearch "" | paramQueryString }}'>Back</a>
+        {{ end }}
+    </form>
+    {{ if eq $urlParams.Order "reverse" }} <p>Sorting by oldest.
+        <a href='/bookmarks{{ $urlParams | paramSetOrder "normal" | paramQueryString }}'>Sort by newest?</a>
+    </p>
+    {{ else }}
+    <p>Sorting by newest.
+        <a href='/bookmarks{{ $urlParams | paramSetOrder "reverse" | paramQueryString }}'>Sort by oldest?</a>
+    </p>
+    {{ end }}
+
     <div data-controller="new-bookmark">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2>Recent</h2>
+            <h2>{{ if $urlParams.Search }}Searching "{{ $urlParams.Search }}"{{ else }}All bookmarks{{ end }}</h2>
             <div>
                 <button data-new-bookmark-target="showButton" data-action="click->new-bookmark#show">New</button>
                 <button data-new-bookmark-target="hideButton" data-action="click->new-bookmark#hide"
@@ -80,7 +97,7 @@
     {{ end }}
 
     <p>
-        {{ if ne .Pager.First "" }}
+        {{ if .Pager.First }}
         <a href="/bookmarks{{ $urlParams | paramSetPage .Pager.First | paramQueryString }}">{{ .Pager.First }}</a> …
         {{ end }}
         {{ range .Pager.Prev }}
@@ -90,7 +107,7 @@
         {{ range .Pager.Next }}
         <a href="/bookmarks{{ $urlParams | paramSetPage . | paramQueryString }}">{{ . }}</a>
         {{ end }}
-        {{ if ne .Pager.Last "" }}
+        {{ if .Pager.Last }}
         … <a href="/bookmarks{{ $urlParams | paramSetPage .Pager.Last | paramQueryString }}">{{ .Pager.Last }}</a>
         {{ end }}
     </p>
