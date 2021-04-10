@@ -55,7 +55,7 @@
                 let newTag = document.createElement("li")
                 this.tagListTarget.appendChild(newTag)
                 newTag.outerHTML = `<li data-controller="tag" data-tag-target="self">
-                        <input type=text name=tag readonly=readonly value="${name}">
+                        <input type=text name=searchTag readonly=readonly value="${name}">
                         <button data-action="click->tag#remove" type=button>Remove</button>
                     </li>`
             }

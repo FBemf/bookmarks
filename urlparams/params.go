@@ -13,14 +13,14 @@ const (
 	NORMAL_ORDER  = "normal"
 )
 
-type UrlParams struct {
-	Page   int
-	Order  string
-	Search string
-	Tags   []string
+type SearchParams struct {
+	Page       int
+	Order      string
+	Search     string
+	SearchTags []string
 }
 
-func SetPage(page string, p UrlParams) (UrlParams, error) {
+func SetPage(page string, p SearchParams) (SearchParams, error) {
 	var err error
 	p.Page, err = strconv.Atoi(page)
 	if err != nil {
@@ -32,7 +32,7 @@ func SetPage(page string, p UrlParams) (UrlParams, error) {
 	return p, err
 }
 
-func SetOrder(order string, p UrlParams) (UrlParams, error) {
+func SetOrder(order string, p SearchParams) (SearchParams, error) {
 	var err error
 	p.Order = order
 	if p.Order != NORMAL_ORDER && order != REVERSE_ORDER {
@@ -41,19 +41,19 @@ func SetOrder(order string, p UrlParams) (UrlParams, error) {
 	return p, err
 }
 
-func SetSearch(search string, p UrlParams) (UrlParams, error) {
+func SetSearch(search string, p SearchParams) (SearchParams, error) {
 	var err error
 	p.Search = search
 	return p, err
 }
 
-func ClearTags(p UrlParams) (UrlParams, error) {
+func ClearTags(p SearchParams) (SearchParams, error) {
 	var err error
-	p.Tags = make([]string, 0)
+	p.SearchTags = make([]string, 0)
 	return p, err
 }
 
-func (p UrlParams) QueryString() template.URL {
+func (p SearchParams) QueryString() template.URL {
 	params := make([]string, 0)
 	if p.Page != 1 {
 		params = append(params, "page="+strconv.Itoa(p.Page))
@@ -64,8 +64,8 @@ func (p UrlParams) QueryString() template.URL {
 	if p.Search != "" {
 		params = append(params, "search="+p.Search)
 	}
-	for _, tag := range p.Tags {
-		params = append(params, "tag="+tag)
+	for _, tag := range p.SearchTags {
+		params = append(params, "searchTag="+tag)
 	}
 	result := strings.Join(params, "&")
 	if result != "" {
@@ -74,38 +74,38 @@ func (p UrlParams) QueryString() template.URL {
 	return template.URL(result)
 }
 
-func DefaultUrlParams() UrlParams {
-	return UrlParams{
-		Page:   1,
-		Order:  NORMAL_ORDER,
-		Search: "",
-		Tags:   []string{},
+func DefaultUrlParams() SearchParams {
+	return SearchParams{
+		Page:       1,
+		Order:      NORMAL_ORDER,
+		Search:     "",
+		SearchTags: []string{},
 	}
 }
 
-func GetUrlParams(req *http.Request) (UrlParams, error) {
+func GetUrlParams(req *http.Request) (SearchParams, error) {
 	params := DefaultUrlParams()
 
 	err := req.ParseForm()
 	if err != nil {
-		return UrlParams{}, fmt.Errorf("parsing request params: %w", err)
+		return SearchParams{}, fmt.Errorf("parsing request params: %w", err)
 	}
 	pageString := req.Form.Get("page")
 	if pageString != "" {
 		params.Page, err = strconv.Atoi(pageString)
 		if err != nil || params.Page < 1 {
-			return UrlParams{}, fmt.Errorf("parsing page: %w", err)
+			return SearchParams{}, fmt.Errorf("parsing page: %w", err)
 		}
 	}
 	order := req.Form.Get("order")
 	if order != "" {
 		if order != NORMAL_ORDER && order != REVERSE_ORDER {
-			return UrlParams{}, fmt.Errorf("invalid order %s", order)
+			return SearchParams{}, fmt.Errorf("invalid order %s", order)
 		}
 		params.Order = order
 	}
 	params.Search = req.Form.Get("search")
-	params.Tags = make([]string, 0, len(req.Form["tag"]))
-	params.Tags = append(params.Tags, req.Form["tag"]...)
+	params.SearchTags = make([]string, 0, len(req.Form["searchTag"]))
+	params.SearchTags = append(params.SearchTags, req.Form["searchTag"]...)
 	return params, nil
 }

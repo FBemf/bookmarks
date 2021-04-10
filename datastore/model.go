@@ -196,11 +196,21 @@ func (ds *Datastore) GetBookmarks(info QueryInfo) ([]Bookmark, error) {
 
 	var rows *sql.Rows
 	var err error
-	if info.Search == "" && len(info.Tags) == 0 {
-		query := fmt.Sprintf(`select * from bookmark order by date %s limit ? offset ?`, order)
-		rows, err = ds.db.Query(query, info.Number, info.Offset)
-		if err != nil {
-			return result, fmt.Errorf("fetching bookmarks: %w", err)
+	if len(info.Tags) == 0 {
+		if info.Search == "" {
+			query := fmt.Sprintf(`select * from bookmark order by date %s limit ? offset ?`, order)
+			rows, err = ds.db.Query(query, info.Number, info.Offset)
+			if err != nil {
+				return result, fmt.Errorf("fetching bookmarks: %w", err)
+			}
+		} else {
+			query := fmt.Sprintf(`select * from bookmark
+				where bookmark.name like $1 or url like $1 or description like $1
+				order by date %s limit $2 offset $3`, order)
+			rows, err = ds.db.Query(query, "%"+info.Search+"%", info.Number, info.Offset)
+			if err != nil {
+				return result, fmt.Errorf("fetching bookmarks: %w", err)
+			}
 		}
 	} else {
 		query := fmt.Sprintf(`select bookmark.id, bookmark.name, url, date, description from bookmark

@@ -11,13 +11,13 @@
 
 <turbo-frame id="entry-{{ .Bookmark.Id }}">
     <div class=bookmark-entry>
-        <form method=POST action="/bookmarks/edit/{{ .Bookmark.Id }}{{ .UrlParams | paramQueryString }}">
+        <form method=POST action="/bookmarks/edit/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}">
             <input type=text name=name placeholder="Name" value="{{ .Bookmark.Name }}" autocomplete=off>
             <input type=text name=url placeholder="https://www.example.com" value="{{ .Bookmark.Url }}"
                 autocomplete=off>
             <input type=text name=description placeholder="Description" value="{{ .Bookmark.Description }}"
                 autocomplete=off>
-            <a href="/bookmarks/view/{{ .Bookmark.Id }}{{ .UrlParams | paramQueryString }}">Cancel</a>
+            <a href="/bookmarks/view/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}">Cancel</a>
             <div data-controller="bookmark-tagger">
                 <ul data-bookmark-tagger-target="tagList">
                     {{ range .Bookmark.Tags }}
@@ -37,8 +37,8 @@
             <button data-bookmark-deleter-target="deletePrimary"
                 data-action="click->bookmark-deleter#delete">Delete</button>
             <form data-bookmark-deleter-target="deleteYN" method=POST
-                action="/bookmarks/delete/{{ .Bookmark.Id }}{{ .UrlParams | paramQueryString }}" data-turbo-frame="list"
-                style="display: none">
+                action="/bookmarks/delete/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}"
+                data-turbo-frame="list" style="display: none">
                 Are you sure?&nbsp;
                 <button>Delete</button></a>&nbsp;
                 <button type=button data-action="click->bookmark-deleter#deleteCancel">Cancel</button>
