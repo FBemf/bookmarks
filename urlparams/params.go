@@ -17,6 +17,7 @@ type UrlParams struct {
 	Page   int
 	Order  string
 	Search string
+	Tags   []string
 }
 
 func SetPage(page string, p UrlParams) (UrlParams, error) {
@@ -46,6 +47,12 @@ func SetSearch(search string, p UrlParams) (UrlParams, error) {
 	return p, err
 }
 
+func ClearTags(p UrlParams) (UrlParams, error) {
+	var err error
+	p.Tags = make([]string, 0)
+	return p, err
+}
+
 func (p UrlParams) QueryString() template.URL {
 	params := make([]string, 0)
 	if p.Page != 1 {
@@ -57,6 +64,9 @@ func (p UrlParams) QueryString() template.URL {
 	if p.Search != "" {
 		params = append(params, "search="+p.Search)
 	}
+	for _, tag := range p.Tags {
+		params = append(params, "tag="+tag)
+	}
 	result := strings.Join(params, "&")
 	if result != "" {
 		result = "?" + result
@@ -66,8 +76,10 @@ func (p UrlParams) QueryString() template.URL {
 
 func DefaultUrlParams() UrlParams {
 	return UrlParams{
-		Page:  1,
-		Order: NORMAL_ORDER,
+		Page:   1,
+		Order:  NORMAL_ORDER,
+		Search: "",
+		Tags:   []string{},
 	}
 }
 
@@ -93,5 +105,7 @@ func GetUrlParams(req *http.Request) (UrlParams, error) {
 		params.Order = order
 	}
 	params.Search = req.Form.Get("search")
+	params.Tags = make([]string, 0, len(req.Form["tag"]))
+	params.Tags = append(params.Tags, req.Form["tag"]...)
 	return params, nil
 }

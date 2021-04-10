@@ -18,6 +18,7 @@ func functions() *template.Template {
 			"paramSetPage":     urlparams.SetPage,
 			"paramSetOrder":    urlparams.SetOrder,
 			"paramSetSearch":   urlparams.SetSearch,
+			"paramClearTags":   urlparams.ClearTags,
 			"paramQueryString": urlparams.UrlParams.QueryString,
 		})
 }

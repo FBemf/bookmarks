@@ -41,9 +41,13 @@
             return ["tagName", "tagList"]
         }
 
-        addTag() {
-            if (event.type == "keydown" && event.key != "Enter") {
-                return
+        addTag(event) {
+            if (event.type == "keydown") {
+                if (event.key == "Enter") {
+                    event.preventDefault()
+                } else {
+                    return
+                }
             }
             let name = this.tagNameTarget.value
             if (name != "") {

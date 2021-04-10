@@ -12,13 +12,28 @@
 <h1>Bookmarks</h1>
 
 <turbo-frame id="list">
-    <form action="/bookmarks{{ $urlParams | paramQueryString }}" method=GET>
-        <input type=text name=search placeholder="Search…" value="{{ $urlParams.Search }}" autocomplete=off>
-        <input type=submit value="Go">
-        {{ if $urlParams.Search }}
-        <a href='/bookmarks{{ $urlParams | paramSetSearch "" | paramQueryString }}'>Back</a>
-        {{ end }}
-    </form>
+    <div data-controller="bookmark-tagger">
+        <form action="/bookmarks{{ $urlParams | paramQueryString }}" method=GET>
+            <input type=text name=search placeholder="Search…" value="{{ $urlParams.Search }}" autocomplete=off>
+            <input type=submit value="Go">
+            {{ if or ($urlParams.Search) (ne (len $urlParams.Tags) 0) }}
+            <a href='/bookmarks{{ $urlParams | paramSetSearch "" | paramClearTags | paramQueryString }}'>Back</a>
+            {{ end }}
+            <div data-controller="bookmark-tagger">
+                <ul data-bookmark-tagger-target="tagList">
+                    {{ range .UrlParams.Tags }}
+                    <li data-controller="tag" data-tag-target="self">
+                        <input type=text name=tag readonly=readonly value="{{ . }}">
+                        <button data-action="click->tag#remove" type=button>Remove</button>
+                    </li>
+                    {{ end }}
+                </ul>
+                <input data-bookmark-tagger-target="tagName" data-action="keydown->bookmark-tagger#addTag" type=text
+                    placeholder="Tag name" value="" autocomplete=off>
+                <button type=button data-action="click->bookmark-tagger#addTag">Add tag</button>
+            </div>
+        </form>
+    </div>
     {{ if eq $urlParams.Order "reverse" }} <p>Sorting by oldest.
         <a href='/bookmarks{{ $urlParams | paramSetOrder "normal" | paramQueryString }}'>Sort by newest?</a>
     </p>
@@ -37,19 +52,19 @@
                     style="display: none">Cancel</button>
             </div>
         </div>
-        <div data-controller="bookmark-tagger">
-            <div data-new-bookmark-target="form" class=bookmark-entry style="display: none">
-                <form method=POST action="/bookmarks/create{{ $urlParams | paramQueryString }}">
-                    <input type=text name=name placeholder="Name" value="" autocomplete=off>
-                    <input type=text name=url placeholder="https://www.example.com" value="" autocomplete=off>
-                    <input type=text name=description placeholder="Description" value="" autocomplete=off>
-                    <input type=submit value="Bookmark">
+        <div data-new-bookmark-target="form" class=bookmark-entry style="display: none">
+            <form method=POST action="/bookmarks/create{{ $urlParams | paramQueryString }}">
+                <input type=text name=name placeholder="Name" value="" autocomplete=off>
+                <input type=text name=url placeholder="https://www.example.com" value="" autocomplete=off>
+                <input type=text name=description placeholder="Description" value="" autocomplete=off>
+                <div data-controller="bookmark-tagger">
                     <ul data-bookmark-tagger-target="tagList"></ul>
-                </form>
-                <input data-bookmark-tagger-target="tagName" data-action="keydown->bookmark-tagger#addTag" type=text
-                    placeholder="Tag name" value="" autocomplete=off>
-                <button data-action="click->bookmark-tagger#addTag">Add tag</button>
-            </div>
+                    <input data-bookmark-tagger-target="tagName" data-action="keydown->bookmark-tagger#addTag" type=text
+                        placeholder="Tag name" value="" autocomplete=off>
+                    <button type=button data-action="click->bookmark-tagger#addTag">Add tag</button>
+                </div>
+                <input type=submit value="Bookmark">
+            </form>
         </div>
     </div>
     {{ range .Bookmarks }}

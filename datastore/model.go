@@ -26,6 +26,7 @@ type QueryInfo struct {
 	Search  string
 	Number  uint
 	Offset  uint
+	Tags    []string
 }
 
 func NewQueryInfo(pageSize uint) QueryInfo {
@@ -34,6 +35,7 @@ func NewQueryInfo(pageSize uint) QueryInfo {
 		Search:  "",
 		Number:  pageSize,
 		Offset:  0,
+		Tags:    make([]string, 0),
 	}
 }
 
@@ -194,16 +196,24 @@ func (ds *Datastore) GetBookmarks(info QueryInfo) ([]Bookmark, error) {
 
 	var rows *sql.Rows
 	var err error
-	if info.Search == "" {
+	if info.Search == "" && len(info.Tags) == 0 {
 		query := fmt.Sprintf(`select * from bookmark order by date %s limit ? offset ?`, order)
 		rows, err = ds.db.Query(query, info.Number, info.Offset)
 		if err != nil {
 			return result, fmt.Errorf("fetching bookmarks: %w", err)
 		}
 	} else {
-		query := fmt.Sprintf(`select * from bookmark
-			where name like $1 or url like $1 or description like $1
-			order by date %s limit $2 offset $3`, order)
+		query := fmt.Sprintf(`select bookmark.id, bookmark.name, url, date, description from bookmark
+			join (
+				select * from tag_bookmark
+				join tag on tag.id = tag_bookmark.tag
+				where tag.name in (%s)
+				group by bookmark
+				having count(distinct tag.id) = %d
+			) as t on bookmark.id = t.bookmark
+			where bookmark.name like $1 or url like $1 or description like $1
+			order by date %s limit $2 offset $3`,
+			quoteStrings(info.Tags), len(info.Tags), order)
 		pattern := "%" + info.Search + "%"
 		rows, err = ds.db.Query(query, pattern, info.Number, info.Offset)
 		if err != nil {

@@ -38,6 +38,7 @@ func index(templates *templates.Templates, ds *datastore.Datastore) httprouter.H
 		if urlParams.Order == urlparams.REVERSE_ORDER {
 			query.Reverse = true
 		}
+		query.Tags = urlParams.Tags
 
 		bookmarks, err := ds.GetBookmarks(query)
 		if err != nil {
