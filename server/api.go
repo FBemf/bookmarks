@@ -80,7 +80,7 @@ type apiNewBookmarkData struct {
 	Tags        []string `json:"tags"`
 }
 
-func apiOptions() httprouter.Handle {
+func corsOptions() httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		resp.Header().Set("Access-Control-Allow-Origin", "*")
 		resp.Header().Set("Access-Control-Allow-Headers", "Authorization")
@@ -131,8 +131,6 @@ func apiNewBookmark(ds *datastore.Datastore) httprouter.Handle {
 
 func apiExport(ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		resp.Header().Set("Access-Control-Allow-Origin", "*")
-		resp.Header().Set("Access-Control-Allow-Headers", "Authorization")
 		resp.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		authHeader := req.Header.Get("Authorization")
 		if !strings.HasPrefix(authHeader, tokenType) {
