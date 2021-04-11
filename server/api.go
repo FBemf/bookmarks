@@ -84,6 +84,7 @@ type apiNewBookmarkData struct {
 func apiNewBookmark(ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		resp.Header().Set("Content-Type", "Access-Control-Allow-Origin: *")
+		resp.Header().Set("Content-Type", "Access-Control-Allow-Credentials: true")
 		authHeader := req.Header.Get("Authorization")
 		if !strings.HasPrefix(authHeader, tokenType) {
 			ErrorPage(resp, http.StatusBadRequest)
