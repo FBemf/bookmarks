@@ -20,6 +20,7 @@ func functions() *template.Template {
 	return template.New("").
 		Funcs(template.FuncMap{
 			"bookmarkAndParams": bookmarkAndParams,
+			"emptyBookmark":     emptyBookmark,
 			"paramSetPage":      urlparams.SetPage,
 			"paramSetOrder":     urlparams.SetOrder,
 			"paramSetSearch":    urlparams.SetSearch,
@@ -53,4 +54,8 @@ type bookmarkAndParamsData struct {
 
 func bookmarkAndParams(bookmark datastore.Bookmark, params urlparams.SearchParams) bookmarkAndParamsData {
 	return bookmarkAndParamsData{bookmark, params}
+}
+
+func emptyBookmark() datastore.Bookmark {
+	return datastore.Bookmark{}
 }

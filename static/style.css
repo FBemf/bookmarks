@@ -112,13 +112,13 @@ a {
     margin-bottom: 10px;
 }
 
-.editform__submit-button {
+.editform__left-button {
     position: absolute;
     bottom: 15px;
     left: 20px;
 }
 
-.editform__delete-button {
+.editform__right-button {
     position: absolute;
     bottom: 15px;
     right: 20px;

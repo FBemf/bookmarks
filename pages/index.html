@@ -76,18 +76,12 @@
             </div>
         </div>
         <div data-new-dialogue-target="form" class="list-entry" style="display: none">
-            <form method="POST" action="/bookmarks/create{{ $searchParams | paramQueryString }}">
-                <input id="name" type="text" name="name" placeholder="Name" value="" autocomplete="off">
-                <input type="text" name="url" placeholder="https://www.example.com" value="" autocomplete="off">
-                <input type="text" name="description" placeholder="Description" value="" autocomplete="off">
-                <div data-controller="bookmark-tagger">
-                    <ul data-bookmark-tagger-target="tagList"></ul>
-                    <input data-bookmark-tagger-target="tagName" data-action="keydown->bookmark-tagger#addTag"
-                        type="text" placeholder="Tag name" value="" autocomplete="off">
-                    <button type="button" data-action="click->bookmark-tagger#addTag">Add tag</button>
-                </div>
-                <input type="submit" value="Bookmark">
-            </form>
+            <div class="editform">
+                <form method="POST" action="/bookmarks/create{{ $searchParams | paramQueryString }}">
+                    {{ template "edit" emptyBookmark }}
+                    <input class="editform__right-button" type="submit" value="Bookmark">
+                </form>
+            </div>
         </div>
     </div>
     {{ range .Bookmarks }}

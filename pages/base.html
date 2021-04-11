@@ -50,3 +50,31 @@
     </div>
 </turbo-frame>
 {{ end }}
+
+{{ define "edit"}}
+<label class="editform__label" for="form-name">Name</label>
+<input class="longfield" id="form-name" type="text" name="name" placeholder="Name" value="{{ .Name }}"
+    autocomplete="off">
+<label class="editform__label" for="form-url">URL</label>
+<input class="longfield" for="form-url" type="text" name="url" placeholder="https://www.example.com" value="{{ .Url }}"
+    autocomplete="off">
+<label class="editform__label" for="form-description">Description</label>
+<input class="longfield" id="form-description" type="text" name="description" placeholder="Description"
+    value="{{ .Description }}" autocomplete="off">
+<div data-controller="bookmark-tagger">
+    <label class="editform__label" for="form-tags">Tags</label>
+    <input id="form-tags" data-bookmark-tagger-target="tagName" data-action="keydown->bookmark-tagger#addTag"
+        type="text" placeholder="Tag name" value="" autocomplete="off">
+    <button type="button" data-action="click->bookmark-tagger#addTag">Add tag</button>
+    <div data-bookmark-tagger-target="tagList">
+        {{ range .Tags }}
+        <span class="taglist__tag" data-controller="tag" data-tag-target="self">
+            <input type="hidden" name="tag" value="{{ . }}">
+            {{ . }}
+            <button class="link" data-action="click->tag#remove" type="button">×</button>
+            &nbsp;
+        </span>
+        {{ end }}
+    </div>
+</div>
+{{ end }}

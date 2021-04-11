@@ -32,7 +32,6 @@ func index(templates *templates.Templates, ds *datastore.Datastore) httprouter.H
 			ErrorPage(resp, http.StatusBadRequest)
 			return
 		}
-		log.Printf("params %q", urlParams)
 
 		query := datastore.NewQueryInfo(PAGE_SIZE)
 		query.Offset = PAGE_SIZE * uint(urlParams.Page-1)
