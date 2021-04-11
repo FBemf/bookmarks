@@ -19,14 +19,14 @@
         <div class="spacer"></div>
         <form method="POST" action="/bookmarks/edit/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}">
             <label class="editform__label" for="form-name">Name</label>
-            <input class="editform__longfield" id="form-name" type="text" name="name" placeholder="Name"
+            <input class="longfield" id="form-name" type="text" name="name" placeholder="Name"
                 value="{{ .Bookmark.Name }}" autocomplete="off">
             <label class="editform__label" for="form-url">URL</label>
-            <input class="editform__longfield" for="form-url" type="text" name="url"
-                placeholder="https://www.example.com" value="{{ .Bookmark.Url }}" autocomplete="off">
+            <input class="longfield" for="form-url" type="text" name="url" placeholder="https://www.example.com"
+                value="{{ .Bookmark.Url }}" autocomplete="off">
             <label class="editform__label" for="form-description">Description</label>
-            <input class="editform__longfield" id="form-description" type="text" name="description"
-                placeholder="Description" value="{{ .Bookmark.Description }}" autocomplete="off">
+            <input class="longfield" id="form-description" type="text" name="description" placeholder="Description"
+                value="{{ .Bookmark.Description }}" autocomplete="off">
             <div data-controller="bookmark-tagger">
                 <label class="editform__label" for="form-tags">Tags</label>
                 <input id="form-tags" data-bookmark-tagger-target="tagName"

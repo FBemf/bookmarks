@@ -109,7 +109,7 @@
                 port = ":" + window.location.port
             }
             textElement.innerText = `
-javascript:(()=>{
+javascript:(() => {
 let auth = "Bearer ${this.keyTarget.value}";
 let name = window.prompt("Name", document.title);
 if (name == null) { return; }
@@ -121,17 +121,15 @@ let tags = [];
 while (true) {
 let got = window.prompt("Add tag?", "");
 if (got == null || got == "") { break; }
-tags.push(got);
-}
+tags.push(got);}
 let queryUrl = "${window.location.protocol}//${window.location.hostname}${port}/api/newbookmark";
-try {
 fetch(queryUrl, {
 method: "POST",
-headers: {"Authorization": auth},
-body: JSON.stringify({name: name, url: url, description: description, tags: tags}),
-})} catch(e) {
-alert("Failed to create bookmark!\n" + String(e))
-}})()`
+headers: { "Authorization": auth },
+body: JSON.stringify({ name: name, url: url, description: description, tags: tags }),
+}).catch((e) => {
+alert("Failed to create bookmark! " + String(e))
+});})()`
             textElement.select()
             document.execCommand("copy")
             textElement.parentNode.removeChild(textElement)
