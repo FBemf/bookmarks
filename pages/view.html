@@ -11,8 +11,8 @@
 <hr>
 
 <turbo-frame id="entry-{{ .Bookmark.Id }}">
-    <div class=bookmark-entry>
-        <a href={{ .Bookmark.Url }}>{{ .Bookmark.Name }}</a>
+    <div class="list-entry">
+        <a href="{{ .Bookmark.Url }}">{{ .Bookmark.Name }}</a>
         <p>{{ .Bookmark.Description }}</p>
         <div style="float: right">
             <a href="/bookmarks/edit/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}"><button>Edit</button></a>

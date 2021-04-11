@@ -13,47 +13,49 @@
 <hr>
 
 <turbo-frame id="entry-{{ .Bookmark.Id }}">
-    <div class="bookmark-entry editform">
-        <a class=cancel href="/bookmarks/view/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}">Cancel</a>
-        <form method=POST action="/bookmarks/edit/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}">
-            <label class=tight for=form-name>Name</label>
-            <input class=long id=form-name type=text name=name placeholder="Name" value="{{ .Bookmark.Name }}"
-                autocomplete=off>
-            <label class=tight for=form-url>URL</label>
-            <input class=long for=form-url type=text name=url placeholder="https://www.example.com"
-                value="{{ .Bookmark.Url }}" autocomplete=off>
-            <label class=tight for=form-description>Description</label>
-            <input class=long id=form-description type=text name=description placeholder="Description"
-                value="{{ .Bookmark.Description }}" autocomplete=off>
+    <div class="list-entry editform">
+        <a class="editform__cancel"
+            href="/bookmarks/view/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}">Cancel</a>
+        <div class="spacer"></div>
+        <form method="POST" action="/bookmarks/edit/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}">
+            <label class="tight" for="form-name">Name</label>
+            <input class="longfield" id="form-name" type="text" name="name" placeholder="Name"
+                value="{{ .Bookmark.Name }}" autocomplete="off">
+            <label class="tight" for="form-url">URL</label>
+            <input class="longfield" for="form-url" type="text" name="url" placeholder="https://www.example.com"
+                value="{{ .Bookmark.Url }}" autocomplete="off">
+            <label class="tight" for="form-description">Description</label>
+            <input class="longfield" id="form-description" type="text" name="description" placeholder="Description"
+                value="{{ .Bookmark.Description }}" autocomplete="off">
             <div data-controller="bookmark-tagger">
-                <div class=editfield>
-                    <label for=form-tags>Tags</label>
-                    <input id=form-tags data-bookmark-tagger-target="tagName"
-                        data-action="keydown->bookmark-tagger#addTag" type=text placeholder="Tag name" value=""
-                        autocomplete=off>
-                    <button type=button data-action="click->bookmark-tagger#addTag">Add tag</button>
+                <div class="editform__field">
+                    <label for="form-tags">Tags</label>
+                    <input id="form-tags" data-bookmark-tagger-target="tagName"
+                        data-action="keydown->bookmark-tagger#addTag" type="text" placeholder="Tag name" value=""
+                        autocomplete="off">
+                    <button type="button" data-action="click->bookmark-tagger#addTag">Add tag</button>
                 </div>
                 <div data-bookmark-tagger-target="tagList">
                     {{ range .Bookmark.Tags }}
-                    <span class=tag data-controller="tag" data-tag-target="self">
-                        <input type=hidden name=tag value="{{ . }}">
+                    <span class="taglist__tag" data-controller="tag" data-tag-target="self">
+                        <input type="hidden" name="tag" value="{{ . }}">
                         {{ . }}
-                        <button class=link data-action="click->tag#remove" type=button>×</button>
+                        <button class="link" data-action="click->tag#remove" type="button">×</button>
                         &nbsp;
                     </span>
                     {{ end }}
                 </div>
             </div>
-            <input class=submit-button type=submit value="Update">
+            <input class="editform__submit-button" type="submit" value="Update">
         </form>
-        <div class=delete-button data-controller="are-you-sure">
+        <div class="editform__delete-button" data-controller="are-you-sure">
             <button data-are-you-sure-target="initial" data-action="click->are-you-sure#prime">Delete</button>
-            <form data-are-you-sure-target="primary" method=POST
+            <form data-are-you-sure-target="primary" method="POST"
                 action="/bookmarks/delete/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}"
                 data-turbo-frame="list" style="display: none">
                 Are you sure?&nbsp;
                 <button>Delete</button></a>&nbsp;
-                <button type=button data-action="click->are-you-sure#cancel">Cancel</button>
+                <button type="button" data-action="click->are-you-sure#cancel">Cancel</button>
             </form>
         </div>
     </div>

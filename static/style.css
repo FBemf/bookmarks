@@ -1,11 +1,136 @@
 /**
- * Fonts
+ *  Fonts
  */
 @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
 
+/**
+ *  Variables
+ */
+:root {
+    --body-colour: #222;
+    --secondary-colour: rgb(155, 120, 139);
+    --accent-colour: rgb(201, 66, 133);
+}
+
 
 /**
- * Generic types
+ *  Generic types
+ */
+h1, h2, h3 {
+    line-height: 1.2;
+    font-family: Pacifico, serif;
+}
+
+a {
+    color: var(--accent-colour);
+    text-decoration: none;
+}
+
+/**
+ *  Custom Types
+ */
+.main {
+    min-height: 90vh;
+    margin: 0px auto;
+    padding: 30px 40px;
+    max-width: 650px;
+    font-family: sans-serif;
+    color: var(--body-colour);
+    background-color: rgb(255, 255, 255, 0.7);
+    border-radius: 40px;
+}
+
+.list-entry {
+    border: var(--secondary-colour) dashed;
+    border-radius: 20px;
+    border-width: 6px;
+    padding: 3% 4%;
+    margin: 5% 0%;
+}
+
+.taglist {
+    margin-top: 5px;
+}
+
+.taglist__tag {
+    text-decoration-style: dotted;
+    font-size: 0.9rem;
+    margin-left: 10px;
+}
+
+.sortby {
+    font-size: 0.9;
+    font-style: italic;
+}
+
+.sortby__back {
+    float: right;
+}
+
+.searchbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+label.tight {
+    font-size: 0.8rem;
+    display: block;
+}
+
+.longfield {
+    width: 100%;
+}
+
+.spaced-buttons {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.editform {
+    position: relative;
+    padding-bottom: 50px;
+}
+
+.editform__field {
+    margin-top: 10px;
+}
+
+.editform__submit-button {
+    position: absolute;
+    bottom: 15px;
+    left: 20px;
+}
+
+.editform__delete-button {
+    position: absolute;
+    bottom: 15px;
+    right: 20px;
+}
+
+.editform__cancel {
+    float: right;
+    margin-bottom: 10px;
+}
+
+.spacer {
+    height: 20px;
+}
+
+textarea.wide {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.keyname {
+    margin: 6px 0px;
+}
+
+
+/**
+ *  Verbose, fancy stuff
  */
 body {
     background: linear-gradient(90deg, rgba(255, 225, 132, .7) 50%, rgba(255,255,255, 0) 50%),
@@ -16,36 +141,26 @@ body {
     background-color: #F5E9BE;
 }
 
-h1, h2, h3 {
-    line-height: 1.2;
-    font-family: Pacifico, serif;
-}
 
-a {
-    color: rgb(201, 66, 133);
-    text-decoration: none;
-}
-
-/**
- * Custom Types
- */
-.main {
-    min-height: 90vh;
-    margin: 0px auto;
-    padding: 30px 40px;
-    max-width: 650px;
-    font-family: sans-serif;
-    color: #222;
-    background-color: rgb(255, 255, 255, 0.7);
-    border-radius: 40px;
-}
-
-.bookmark-entry {
-    /*background-color: rgba(0, 0, 0, 0.05);*/
-    border: #444 dashed;
-    border-radius: 20px;
-    padding: 3% 4%;
-    margin: 5% 0%;
+button.link {
+    align-items: normal;
+    background-color: rgba(0,0,0,0);
+    border-color: rgb(0, 0, 0, 0);
+    border-style: none;
+    box-sizing: content-box;
+    color: var(--accent-colour);
+    cursor: pointer;
+    display: inline;
+    font: inherit;
+    height: auto;
+    padding: 0;
+    perspective-origin: 0 0;
+    text-align: start;
+    transform-origin: 0 0;
+    width: auto;
+    -moz-appearance: none;
+    -webkit-logical-height: 1em; /* Chrome ignores auto, so we have to use this hack to set the correct height  */
+    -webkit-logical-width: auto; /* Chrome ignores auto, but here for completeness */
 }
 
 hr {
@@ -76,103 +191,3 @@ hr:after {
     right: -18px;    
 }
 
-.tag {
-    text-decoration-style: dotted;
-    font-size: 0.9rem;
-    margin-left: 10px;
-}
-
-.sortby {
-    font-size: 0.9;
-    font-style: italic;
-}
-
-.back {
-    float: right;
-}
-
-.searchbar {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
-.taglist {
-    margin-top: 5px;
-}
-
-.editfield {
-    margin-top: 10px;
-}
-
-label.tight {
-    font-size: 0.8rem;
-    display: block;
-}
-
-.long {
-    width: 100%;
-}
-
-.spaced-buttons {
-    margin-top: 10px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
-.editform {
-    position: relative;
-    padding-bottom: 50px;
-}
-
-.submit-button {
-    position: absolute;
-    bottom: 15px;
-    left: 20px;
-}
-
-.delete-button {
-    position: absolute;
-    bottom: 15px;
-    right: 20px;
-}
-
-.cancel {
-    float: right;
-    margin-bottom: 10px;
-}
-
-.spacer {
-    height: 20px;
-}
-
-textarea.wide {
-    width: 100%;
-    margin-bottom: 20px;
-}
-
-.keyname {
-    margin: 6px 0px;
-}
-
-button.link {
-    align-items: normal;
-    background-color: rgba(0,0,0,0);
-    border-color: rgb(0, 0, 0, 0);
-    border-style: none;
-    box-sizing: content-box;
-    color: rgb(201, 66, 133);
-    cursor: pointer;
-    display: inline;
-    font: inherit;
-    height: auto;
-    padding: 0;
-    perspective-origin: 0 0;
-    text-align: start;
-    transform-origin: 0 0;
-    width: auto;
-    -moz-appearance: none;
-    -webkit-logical-height: 1em; /* Chrome ignores auto, so we have to use this hack to set the correct height  */
-    -webkit-logical-width: auto; /* Chrome ignores auto, but here for completeness */
-}

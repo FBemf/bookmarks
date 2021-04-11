@@ -14,12 +14,12 @@
 
 <turbo-frame id="export">
     <div data-controller="clipboard-copier">
-        <textarea class=wide data-clipboard-copier-target="text" readonly=readonly>{{ . }}</textarea>
-        <div class=spaced-buttons>
+        <textarea class="wide" data-clipboard-copier-target="text" readonly="readonly">{{ . }}</textarea>
+        <div class="spaced-buttons">
             <button data-action="click->clipboard-copier#copy">Copy</button>
-            <form method=GET action="/export">
-                <input type=hidden name=really value="yes">
-                <input type=submit value="Export all bookmarks">
+            <form method="GET" action="/export">
+                <input type="hidden" name="really" value="yes">
+                <input type="submit" value="Export all bookmarks">
             </form>
         </div>
     </div>

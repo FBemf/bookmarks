@@ -14,29 +14,29 @@
 
 <turbo-frame id="keys">
     <div data-controller="new-dialogue">
-        <form method=POST action="/keys/create">
-            <input type=text name=name placeholder="Key name" value="" autocomplete=off>
-            <input type=submit value="Create new API key">
+        <form method="POST" action="/keys/create">
+            <input type="text" name="name" placeholder="Key name" value="" autocomplete="off">
+            <input type="submit" value="Create new API key">
         </form>
     </div>
     {{ range . }}
-    <div class=bookmark-entry>
+    <div class="list-entry">
         <div data-controller="bookmarklet-copier">
             <div data-controller="text-copier">
-                <div class=keyname>{{ .Name }}</div>
-                <input class=long type=text readonly=readonly data-bookmarklet-copier-target="key"
+                <div class="keyname">{{ .Name }}</div>
+                <input class="longfield" type="text" readonly="readonly" data-bookmarklet-copier-target="key"
                     data-text-copier-target="text" value="{{ .Key }}">
-                <div class=spaced-buttons>
+                <div class="spaced-buttons">
                     <button data-action="click->text-copier#copy">Copy</button>
                     <button data-action="click->bookmarklet-copier#copy">Copy Bookmarklet</button>
                     <div data-controller="are-you-sure">
                         <button data-are-you-sure-target="initial"
                             data-action="click->are-you-sure#prime">Revoke</button>
-                        <form data-are-you-sure-target="primary" method=POST action="/keys/delete/{{ .Id }}"
+                        <form data-are-you-sure-target="primary" method="POST" action="/keys/delete/{{ .Id }}"
                             data-turbo-frame="list" style="display: none">
                             Are you sure?&nbsp;
                             <button>Revoke</button></a>&nbsp;
-                            <button type=button data-action="click->are-you-sure#cancel">Cancel</button>
+                            <button type="button" data-action="click->are-you-sure#cancel">Cancel</button>
                         </form>
                     </div>
                 </div>

@@ -63,7 +63,7 @@
                 let newTag = document.createElement("div")
                 this.tagListTarget.appendChild(newTag)
                 newTag.outerHTML = `
-                    <span class=tag data-controller="tag" data-tag-target="self">
+                    <span class=taglist__tag data-controller="tag" data-tag-target="self">
                         <input type=hidden name="${fieldName}" readonly=readonly value="${name}">
                             ${name}
                             <button class=link data-action="click->tag#remove" type=button>×</button>
