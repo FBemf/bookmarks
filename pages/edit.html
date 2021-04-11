@@ -20,14 +20,16 @@
                 autocomplete=off>
             <a href="/bookmarks/view/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}">Cancel</a>
             <div data-controller="bookmark-tagger">
-                <ul data-bookmark-tagger-target="tagList">
+                <div data-bookmark-tagger-target="tagList">
                     {{ range .Bookmark.Tags }}
-                    <li data-controller="tag" data-tag-target="self">
-                        <input type=text name=tag readonly=readonly value="{{ . }}">
-                        <button data-action="click->tag#remove" type=button>Remove</button>
-                    </li>
+                    <span class=tag data-controller="tag" data-tag-target="self">
+                        <input type=hidden name=tag value="{{ . }}">
+                        {{ . }}
+                        <button class=link data-action="click->tag#remove" type=button>×</button>
+                        &nbsp;
+                    </span>
                     {{ end }}
-                </ul>
+                </div>
                 <input data-bookmark-tagger-target="tagName" data-action="keydown->bookmark-tagger#addTag" type=text
                     placeholder="Tag name" value="" autocomplete=off>
                 <button type=button data-action="click->bookmark-tagger#addTag">Add tag</button>

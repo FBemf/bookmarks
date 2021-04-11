@@ -42,6 +42,14 @@
         }
 
         addTag(event) {
+            this.internalAddTag(event, "tag")
+        }
+
+        addSearchTag(event) {
+            this.internalAddTag(event, "searchTag")
+        }
+
+        internalAddTag(event, fieldName) {
             if (event.type == "keydown") {
                 if (event.key == "Enter") {
                     event.preventDefault()
@@ -52,12 +60,15 @@
             let name = this.tagNameTarget.value
             if (name != "") {
                 this.tagNameTarget.value = ""
-                let newTag = document.createElement("li")
+                let newTag = document.createElement("div")
                 this.tagListTarget.appendChild(newTag)
-                newTag.outerHTML = `<li data-controller="tag" data-tag-target="self">
-                        <input type=text name=searchTag readonly=readonly value="${name}">
-                        <button data-action="click->tag#remove" type=button>Remove</button>
-                    </li>`
+                newTag.outerHTML = `
+                    <span class=tag data-controller="tag" data-tag-target="self">
+                        <input type=hidden name="${fieldName}" readonly=readonly value="${name}">
+                            ${name}
+                            <button class=link data-action="click->tag#remove" type=button>×</button>
+                            &nbsp;
+                    </span>`
             }
         }
     });

@@ -21,8 +21,10 @@
     <div class=bookmark-entry>
         <div data-controller="bookmarklet-copier">
             <div data-controller="text-copier">
-                <p><em>{{ .Name }}:</em> <input type=text readonly=readonly data-bookmarklet-copier-target="key"
-                        data-text-copier-target="text" value="{{ .Key }}"></p>
+                <p>{{ .Name }}:
+                    <input type=text readonly=readonly data-bookmarklet-copier-target="key"
+                        data-text-copier-target="text" value="{{ .Key }}">
+                </p>
                 <button data-action="click->text-copier#copy">Copy</button>
                 <button data-action="click->bookmarklet-copier#copy">Copy Bookmarklet</button>
             </div>

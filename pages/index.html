@@ -12,42 +12,56 @@
 <h1>Bookmarks</h1>
 {{ template "nav" . }}
 
+<hr>
+
 <turbo-frame id="list">
-    <div data-controller="bookmark-tagger">
-        <form action='/bookmarks{{ $searchParams |  paramSetSearch "" | paramClearTags | paramQueryString }}'
-            method=GET>
-            <input type=text name=search placeholder="Search…" value="{{ $searchParams.Search }}" autocomplete=off>
-            <input type=submit value="Go">
-            {{ if or ($searchParams.Search) (ne (len $searchParams.SearchTags) 0) }}
-            <a href='/bookmarks{{ $searchParams | paramSetSearch "" | paramClearTags | paramQueryString }}'>Back</a>
-            {{ end }}
-            <div data-controller="bookmark-tagger">
-                <ul data-bookmark-tagger-target="tagList">
-                    {{ range $searchParams.SearchTags }}
-                    <li data-controller="tag" data-tag-target="self">
-                        <input type=text name=searchTag readonly=readonly value="{{ . }}">
-                        <button data-action="click->tag#remove" type=button>Remove</button>
-                    </li>
-                    {{ end }}
-                </ul>
-                <input data-bookmark-tagger-target="tagName" data-action="keydown->bookmark-tagger#addTag" type=text
-                    placeholder="Tag name" value="" autocomplete=off>
-                <button type=button data-action="click->bookmark-tagger#addTag">Add tag</button>
+    <h2>Search</h2>
+    <form action='/bookmarks{{ $searchParams |  paramSetSearch "" | paramClearTags | paramQueryString }}' method=GET>
+        <div class=searcharea data-controller="bookmark-tagger">
+            <div class=searchbar>
+                <div>
+                    <input data-bookmark-tagger-target="tagName" data-action="keydown->bookmark-tagger#addSearchTag"
+                        type=text placeholder="Tag name" value="" autocomplete=off>
+                    <button type=button data-action="click->bookmark-tagger#addSearchTag">Add tag</button>
+                </div>
+                <input type=text name=search placeholder="Search…" value="{{ $searchParams.Search }}" autocomplete=off>
+                <input type=submit value="Go!">
             </div>
-        </form>
-    </div>
-    {{ if eq $searchParams.Order "reverse" }} <p>Sorting by oldest.
+            <div data-bookmark-tagger-target="tagList">
+                {{ range $searchParams.SearchTags }}
+                <span class=tag data-controller="tag" data-tag-target="self">
+                    <input type=hidden name=searchTag readonly=readonly value="{{ . }}">
+                    {{ . }}
+                    <button class=link data-action="click->tag#remove" type=button>×</button>
+                    &nbsp;
+                </span>
+                {{ end }}
+            </div>
+            {{ if or ($searchParams.Search) (ne (len $searchParams.SearchTags) 0) }}
+            <a class=back href='/bookmarks{{ $searchParams | paramSetSearch "" | paramClearTags | paramQueryString }}'>
+                &nbsp;Back ↩︎
+            </a>
+            {{ end }}
+        </div>
+    </form>
+    <p class=sortby>
+        {{ if eq $searchParams.Order "reverse" }}
+        Sorting by oldest.
         <a href='/bookmarks{{ $searchParams | paramSetOrder "normal" | paramQueryString }}'>Sort by newest?</a>
-    </p>
-    {{ else }}
-    <p>Sorting by newest.
+        {{ else }}
+        Sorting by newest.
         <a href='/bookmarks{{ $searchParams | paramSetOrder "reverse" | paramQueryString }}'>Sort by oldest?</a>
+        {{ end }}
     </p>
-    {{ end }}
 
     <div data-controller="new-dialogue">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2>{{ if $searchParams.Search }}Searching "{{ $searchParams.Search }}"{{ else }}All bookmarks{{ end }}</h2>
+            <h2>
+                {{ if $searchParams.Search }}Searching "{{ $searchParams.Search}}"{{ end }}
+                {{ if $searchParams.SearchTags }}{{ if $searchParams.Search }}and f{{ else }}F{{ end }}iltering by
+                tags{{ end }}
+                {{ if not (or $searchParams.Search $searchParams.SearchTags) }}All bookmarks{{ end }}
+            </h2>
             <div>
                 <button data-new-dialogue-target="showButton" data-action="click->new-dialogue#show">New</button>
                 <button data-new-dialogue-target="hideButton" data-action="click->new-dialogue#hide"
@@ -56,7 +70,7 @@
         </div>
         <div data-new-dialogue-target="form" class=bookmark-entry style="display: none">
             <form method=POST action="/bookmarks/create{{ $searchParams | paramQueryString }}">
-                <input type=text name=name placeholder="Name" value="" autocomplete=off>
+                <input id=name type=text name=name placeholder="Name" value="" autocomplete=off>
                 <input type=text name=url placeholder="https://www.example.com" value="" autocomplete=off>
                 <input type=text name=description placeholder="Description" value="" autocomplete=off>
                 <div data-controller="bookmark-tagger">

@@ -13,6 +13,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 //go:embed pages
@@ -24,7 +25,7 @@ var staticFS embed.FS
 //go:embed schema
 var schemaFS embed.FS
 
-var COMMANDS []command
+var commandList []command
 
 type command struct {
 	flags *flag.FlagSet
@@ -32,7 +33,7 @@ type command struct {
 }
 
 func main() {
-	COMMANDS = []command{
+	commandList = []command{
 		serverCommand(),
 		manageUserCommand(),
 		helpCommand(),
@@ -42,7 +43,7 @@ func main() {
 		os.Exit(1)
 	}
 	commandName := os.Args[1]
-	for _, command := range COMMANDS {
+	for _, command := range commandList {
 		if command.flags.Name() == commandName {
 			command.run()
 			return
@@ -83,6 +84,8 @@ func serve(config serveConfig) {
 	if err != nil {
 		log.Fatalf("opening database file %s: %s", config.dbFile, err)
 	}
+
+	ds.CleanUpCookies(time.Hour * 24 * 30)
 
 	router := server.MakeRouter(&templates, static, ds)
 	log.Printf("Serving HTTP on port %d\n", config.port)
@@ -202,8 +205,8 @@ func openDatabase(dbFile string) (*datastore.Datastore, error) {
 }
 
 func printHelp() {
-	commandNames := make([]string, 0, len(COMMANDS))
-	for _, command := range COMMANDS {
+	commandNames := make([]string, 0, len(commandList))
+	for _, command := range commandList {
 		commandNames = append(commandNames, command.flags.Name())
 	}
 	fmt.Printf("Usage: %s [ COMMAND ] [ FLAGS ]\nCommands: %s\n", os.Args[0], strings.Join(commandNames, ", "))
