@@ -80,10 +80,18 @@ type apiNewBookmarkData struct {
 	Tags        []string `json:"tags"`
 }
 
+func apiOptions() httprouter.Handle {
+	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		resp.Header().Set("Access-Control-Allow-Origin", "*")
+		resp.Header().Set("Access-Control-Allow-Headers", "Authorization")
+	}
+}
+
 func apiNewBookmark(ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		resp.Header().Set("Content-Type", "Access-Control-Allow-Origin: *")
-		resp.Header().Set("Content-Type", "Access-Control-Allow-Credentials: true")
+		resp.Header().Set("Access-Control-Allow-Origin", "*")
+		resp.Header().Set("Access-Control-Allow-Headers", "Authorization")
+		resp.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		authHeader := req.Header.Get("Authorization")
 		if !strings.HasPrefix(authHeader, tokenType) {
 			ErrorPage(resp, http.StatusBadRequest)
@@ -123,7 +131,9 @@ func apiNewBookmark(ds *datastore.Datastore) httprouter.Handle {
 
 func apiExport(ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		resp.Header().Set("Content-Type", "Access-Control-Allow-Origin: *")
+		resp.Header().Set("Access-Control-Allow-Origin", "*")
+		resp.Header().Set("Access-Control-Allow-Headers", "Authorization")
+		resp.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		authHeader := req.Header.Get("Authorization")
 		if !strings.HasPrefix(authHeader, tokenType) {
 			ErrorPage(resp, http.StatusBadRequest)
@@ -144,7 +154,6 @@ func apiExport(ds *datastore.Datastore) httprouter.Handle {
 				log.Printf("exporting data: %s", err)
 				return
 			}
-			resp.Header().Set("Content-Type", "text/json; charset=UTF-8")
 			_, err = resp.Write(exported)
 			if err != nil {
 				log.Printf("writing response: %s", err)

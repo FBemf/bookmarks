@@ -24,7 +24,9 @@ func MakeRouter(templates *templates.Templates, static fs.FS, ds *datastore.Data
 	router.POST("/login", doLogin(templates, ds))
 	router.GET("/logout", logout)
 
+	router.OPTIONS(apiPrefix+"/newbookmark", apiOptions())
 	router.POST(apiPrefix+"/newbookmark", apiNewBookmark(ds))
+	router.OPTIONS(apiPrefix+"/export", apiOptions())
 	router.GET(apiPrefix+"/export", apiExport(ds))
 
 	router.ServeFiles("/static/*filepath", http.FS(static))

@@ -123,7 +123,7 @@ let got = window.prompt("Add tag?", "");
 if (got == null || got == "") { break; }
 tags.push(got);
 }
-let queryUrl = "http://${window.location.hostname}${port}/api/newbookmark";
+let queryUrl = "${window.location.protocol}//${window.location.hostname}${port}/api/newbookmark";
 fetch(queryUrl, {
 method: "POST",
 headers: {"Authorization": auth},
