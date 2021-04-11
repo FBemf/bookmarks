@@ -18,23 +18,21 @@
             href="/bookmarks/view/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}">Cancel</a>
         <div class="spacer"></div>
         <form method="POST" action="/bookmarks/edit/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}">
-            <label class="tight" for="form-name">Name</label>
-            <input class="longfield" id="form-name" type="text" name="name" placeholder="Name"
+            <label class="editform__label" for="form-name">Name</label>
+            <input class="editform__longfield" id="form-name" type="text" name="name" placeholder="Name"
                 value="{{ .Bookmark.Name }}" autocomplete="off">
-            <label class="tight" for="form-url">URL</label>
-            <input class="longfield" for="form-url" type="text" name="url" placeholder="https://www.example.com"
-                value="{{ .Bookmark.Url }}" autocomplete="off">
-            <label class="tight" for="form-description">Description</label>
-            <input class="longfield" id="form-description" type="text" name="description" placeholder="Description"
-                value="{{ .Bookmark.Description }}" autocomplete="off">
+            <label class="editform__label" for="form-url">URL</label>
+            <input class="editform__longfield" for="form-url" type="text" name="url"
+                placeholder="https://www.example.com" value="{{ .Bookmark.Url }}" autocomplete="off">
+            <label class="editform__label" for="form-description">Description</label>
+            <input class="editform__longfield" id="form-description" type="text" name="description"
+                placeholder="Description" value="{{ .Bookmark.Description }}" autocomplete="off">
             <div data-controller="bookmark-tagger">
-                <div class="editform__field">
-                    <label for="form-tags">Tags</label>
-                    <input id="form-tags" data-bookmark-tagger-target="tagName"
-                        data-action="keydown->bookmark-tagger#addTag" type="text" placeholder="Tag name" value=""
-                        autocomplete="off">
-                    <button type="button" data-action="click->bookmark-tagger#addTag">Add tag</button>
-                </div>
+                <label class="editform__label" for="form-tags">Tags</label>
+                <input id="form-tags" data-bookmark-tagger-target="tagName"
+                    data-action="keydown->bookmark-tagger#addTag" type="text" placeholder="Tag name" value=""
+                    autocomplete="off">
+                <button type="button" data-action="click->bookmark-tagger#addTag">Add tag</button>
                 <div data-bookmark-tagger-target="tagList">
                     {{ range .Bookmark.Tags }}
                     <span class="taglist__tag" data-controller="tag" data-tag-target="self">
