@@ -11,6 +11,9 @@ import (
 )
 
 const bookmarksPrefix = "/bookmarks"
+const keysPrefix = "/keys"
+const exportPrefix = "/export"
+const apiPrefix = "/api"
 
 type middleware = func(httprouter.Handle) httprouter.Handle
 
@@ -20,20 +23,31 @@ func MakeRouter(templates *templates.Templates, static fs.FS, ds *datastore.Data
 	router.GET("/login", loginPage(templates, ds))
 	router.POST("/login", doLogin(templates, ds))
 	router.GET("/logout", logout)
+
+	router.POST(apiPrefix+"/newbookmark", apiNewBookmark(ds))
+	router.GET(apiPrefix+"/export", apiExport(ds))
+
 	router.ServeFiles("/static/*filepath", http.FS(static))
-	routeBookmarks(router, templates, ds, auth(ds, "/login"))
+
+	routeProtected(router, templates, ds, auth(ds, "/login"))
 	return RequestLogger{router}
 }
 
-func routeBookmarks(router *httprouter.Router, templates *templates.Templates, ds *datastore.Datastore, middleware middleware) {
+func routeProtected(router *httprouter.Router, templates *templates.Templates, ds *datastore.Datastore, middleware middleware) {
+	// note: because we use same-site=lax cookies for csrf protection,
+	// all dangerous endpoints have to be POSTs
 	router.GET(bookmarksPrefix, middleware(index(templates, ds)))
 	router.GET(bookmarksPrefix+"/edit/:id", middleware(editBookmark(templates, ds)))
 	router.GET(bookmarksPrefix+"/view/:id", middleware(viewBookmark(templates, ds)))
-	// note: because we use same-site=lax cookies for csrf protection,
-	// all dangerous endpoints have to be POSTs
 	router.POST(bookmarksPrefix+"/create", middleware(submitNewBookmark(ds)))
 	router.POST(bookmarksPrefix+"/edit/:id", middleware(submitEditedBookmark(ds)))
 	router.POST(bookmarksPrefix+"/delete/:id", middleware(deleteBookmark(ds)))
+
+	router.GET(keysPrefix, middleware(keys(templates, ds)))
+	router.POST(keysPrefix+"/create", middleware(createKey(templates, ds)))
+	router.POST(keysPrefix+"/delete/:id", middleware(deleteKey(templates, ds)))
+
+	router.GET(exportPrefix, middleware(export(templates, ds)))
 }
 
 type RequestLogger struct {

@@ -8,6 +8,8 @@ import (
 
 type Templates struct {
 	Login        *template.Template
+	ApiKeys      *template.Template
+	Export       *template.Template
 	Index        *template.Template
 	EditBookmark *template.Template
 	ViewBookmark *template.Template
@@ -26,11 +28,15 @@ func functions() *template.Template {
 
 func CreateTemplates(templateFS fs.FS) Templates {
 	login := template.Must(functions().ParseFS(templateFS, "pages/base.html", "pages/login.html"))
+	apiKeys := template.Must(functions().ParseFS(templateFS, "pages/base.html", "pages/keys.html"))
+	export := template.Must(functions().ParseFS(templateFS, "pages/base.html", "pages/export.html"))
 	index := template.Must(functions().ParseFS(templateFS, "pages/base.html", "pages/index.html"))
 	edit := template.Must(functions().ParseFS(templateFS, "pages/base.html", "pages/edit.html"))
 	view := template.Must(functions().ParseFS(templateFS, "pages/base.html", "pages/view.html"))
 	return Templates{
 		Login:        login,
+		ApiKeys:      apiKeys,
+		Export:       export,
 		Index:        index,
 		EditBookmark: edit,
 		ViewBookmark: view,

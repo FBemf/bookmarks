@@ -35,3 +35,10 @@ CREATE TABLE session (
     cookie      BLOB NOT NULL,
     FOREIGN KEY (user) REFERENCES user(id) ON DELETE CASCADE
 );
+
+CREATE TABLE api_key (
+    id        INTEGER PRIMARY KEY,
+    name      TEXT NOT NULL UNIQUE,
+    key       BLOB NOT NULL,
+    timestamp DATE NOT NULL
+);

@@ -8,6 +8,7 @@
 
 {{ define "body" }}
 <h1>Editing {{ .Bookmark.Name }}</h1>
+{{ template "nav" . }}
 
 <turbo-frame id="entry-{{ .Bookmark.Id }}">
     <div class=bookmark-entry>
@@ -33,15 +34,14 @@
             </div>
             <input type=submit value="Update">
         </form>
-        <div data-controller="bookmark-deleter">
-            <button data-bookmark-deleter-target="deletePrimary"
-                data-action="click->bookmark-deleter#delete">Delete</button>
-            <form data-bookmark-deleter-target="deleteYN" method=POST
+        <div data-controller="are-you-sure">
+            <button data-are-you-sure-target="initial" data-action="click->are-you-sure#prime">Delete</button>
+            <form data-are-you-sure-target="primary" method=POST
                 action="/bookmarks/delete/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}"
                 data-turbo-frame="list" style="display: none">
                 Are you sure?&nbsp;
                 <button>Delete</button></a>&nbsp;
-                <button type=button data-action="click->bookmark-deleter#deleteCancel">Cancel</button>
+                <button type=button data-action="click->are-you-sure#cancel">Cancel</button>
             </form>
         </div>
     </div>

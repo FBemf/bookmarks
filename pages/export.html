@@ -1,0 +1,23 @@
+{{ template "base" . }}
+
+{{ define "head" }}
+<title>Export</title>
+<script src="https://unpkg.com/stimulus/dist/stimulus.umd.js"></script>
+<script src="/static/controllers.js"></script>
+{{ end }}
+
+{{ define "body" }}
+<h1>Export</h1>
+{{ template "nav" . }}
+
+<turbo-frame id="export">
+    <form method=GET action="/export">
+        <input type=hidden name=really value="yes">
+        <input type=submit value="Export all bookmarks">
+    </form>
+    <div data-controller="clipboard-copier">
+        <textarea data-clipboard-copier-target="text" readonly=readonly>{{ . }}</textarea>
+        <button data-action="click->clipboard-copier#copy">Copy</button>
+    </div>
+</turbo-frame>
+{{ end }}

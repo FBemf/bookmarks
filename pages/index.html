@@ -10,7 +10,7 @@
 {{ $searchParams := .SearchParams }}
 
 <h1>Bookmarks</h1>
-<div style="float: right"><a href="/logout">Log out</a></div>
+{{ template "nav" . }}
 
 <turbo-frame id="list">
     <div data-controller="bookmark-tagger">
@@ -45,16 +45,16 @@
     </p>
     {{ end }}
 
-    <div data-controller="new-bookmark">
+    <div data-controller="new-dialogue">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2>{{ if $searchParams.Search }}Searching "{{ $searchParams.Search }}"{{ else }}All bookmarks{{ end }}</h2>
             <div>
-                <button data-new-bookmark-target="showButton" data-action="click->new-bookmark#show">New</button>
-                <button data-new-bookmark-target="hideButton" data-action="click->new-bookmark#hide"
+                <button data-new-dialogue-target="showButton" data-action="click->new-dialogue#show">New</button>
+                <button data-new-dialogue-target="hideButton" data-action="click->new-dialogue#hide"
                     style="display: none">Cancel</button>
             </div>
         </div>
-        <div data-new-bookmark-target="form" class=bookmark-entry style="display: none">
+        <div data-new-dialogue-target="form" class=bookmark-entry style="display: none">
             <form method=POST action="/bookmarks/create{{ $searchParams | paramQueryString }}">
                 <input type=text name=name placeholder="Name" value="" autocomplete=off>
                 <input type=text name=url placeholder="https://www.example.com" value="" autocomplete=off>

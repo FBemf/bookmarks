@@ -3,6 +3,7 @@ package datastore
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -13,12 +14,12 @@ type Datastore struct {
 }
 
 type Bookmark struct {
-	Id          int64
-	Name        string
-	Date        time.Time
-	Url         string
-	Description string
-	Tags        []string
+	Id          int64     `json:"id"`
+	Name        string    `json:"name"`
+	Date        time.Time `json:"date"`
+	Url         string    `json:"url"`
+	Description string    `json:"description"`
+	Tags        []string  `json:"tags"`
 }
 
 type QueryInfo struct {
@@ -279,6 +280,22 @@ func (ds *Datastore) GetNumBookmarks(info QueryInfo) (uint, error) {
 			Scan(&count)
 	}
 	return count, err
+}
+
+func (ds *Datastore) Export() ([]byte, error) {
+	n, err := ds.GetNumBookmarks(NewQueryInfo(0))
+	if err != nil {
+		return nil, fmt.Errorf("retrieving number of bookmarks: %w", err)
+	}
+	bookmarks, err := ds.GetBookmarks(NewQueryInfo(n))
+	if err != nil {
+		return nil, fmt.Errorf("retrieving bookmarks: %w", err)
+	}
+	data, err := json.Marshal(bookmarks)
+	if err != nil {
+		return nil, fmt.Errorf("marshalling json: %w", err)
+	}
+	return data, nil
 }
 
 func quoteStrings(value []string) string {

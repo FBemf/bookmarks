@@ -1,24 +1,24 @@
 (() => {
     const application = Stimulus.Application.start()
 
-    application.register("bookmark-deleter", class extends Stimulus.Controller {
+    application.register("are-you-sure", class extends Stimulus.Controller {
         static get targets() {
-            return ["deletePrimary", "deleteYN"]
+            return ["initial", "primary"]
         }
 
-        delete() {
-            this.deletePrimaryTarget.style.display = "none"
-            this.deleteYNTarget.style.display = ""
+        prime() {
+            this.initialTarget.style.display = "none"
+            this.primaryTarget.style.display = ""
         }
 
-        deleteCancel() {
-            this.deletePrimaryTarget.style.display = ""
-            this.deleteYNTarget.style.display = "none"
+        cancel() {
+            this.initialTarget.style.display = ""
+            this.primaryTarget.style.display = "none"
         }
     })
 
 
-    application.register("new-bookmark", class extends Stimulus.Controller {
+    application.register("new-dialogue", class extends Stimulus.Controller {
         static get targets() {
             return ["form", "showButton", "hideButton"]
         }
@@ -69,6 +69,58 @@
 
         remove() {
             this.selfTarget.parentNode.removeChild(this.selfTarget)
+        }
+    })
+
+    application.register("text-copier", class extends Stimulus.Controller {
+        static get targets() {
+            return ["text"]
+        }
+
+        copy() {
+            let displayValue = this.textTarget.style.display
+            this.textTarget.style.display = ""
+            this.textTarget.select()
+            document.execCommand("copy")
+            this.textTarget.style.display = displayValue
+        }
+    })
+
+    application.register("bookmarklet-copier", class extends Stimulus.Controller {
+        static get targets() {
+            return ["key"]
+        }
+
+        copy() {
+            let textElement = document.body.appendChild(document.createElement("textarea"))
+            let port = ""
+            if (window.location.port != "") {
+                port = ":" + window.location.port
+            }
+            textElement.innerText = `
+javascript:(()=>{
+let auth = "Bearer ${this.keyTarget.value}";
+let name = window.prompt("Name", document.title);
+if (name == null) { return; }
+let url = window.prompt("URL", window.location.href);
+if (url == null) { return; }
+let description = window.prompt("Description", "Type some stuff here");
+if (description == null) { return; }
+let tags = [];
+while (true) {
+let got = window.prompt("Add tag?", "");
+if (got == null || got == "") { break; }
+tags.push(got);
+}
+let queryUrl = "http://${window.location.hostname}${port}/api/newbookmark";
+fetch(queryUrl, {
+method: "POST",
+headers: {"Authorization": auth},
+body: JSON.stringify({name: name, url: url, description: description, tags: tags}),
+})})()`
+            textElement.select()
+            document.execCommand("copy")
+            textElement.parentNode.removeChild(textElement)
         }
     })
 })()
