@@ -40,13 +40,13 @@
         <div style="float: right">
             <a href="/bookmarks/edit/{{ .Bookmark.Id }}{{ $searchParams | paramQueryString }}"><button>Edit</button></a>
         </div>
-        <div>
+        <turbo-frame target="_top">
             Tags:
             {{ range $tagIndex, $tagName := .Bookmark.Tags }}
             {{- if ne $tagIndex 0 }}, {{ end -}}
             <a href="/bookmarks{{  $searchParams | paramAddTag $tagName | paramQueryString }}">{{ $tagName }}</a>
             {{- end }}
-        </div>
+        </turbo-frame>
     </div>
 </turbo-frame>
 {{ end }}
