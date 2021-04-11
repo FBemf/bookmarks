@@ -88,7 +88,7 @@
     {{ template "bookmark" (bookmarkAndParams . $searchParams) }}
     {{ end }}
 
-    <p>
+    <p class="pager">
         {{ if .Pager.First }}
         <a href="/bookmarks{{ $searchParams | paramSetPage .Pager.First | paramQueryString }}">{{ .Pager.First }}</a> …
         {{ end }}

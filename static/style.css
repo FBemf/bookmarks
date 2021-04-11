@@ -133,6 +133,10 @@ a {
     height: 20px;
 }
 
+.pager {
+    text-align: center;
+}
+
 textarea.wide {
     width: 100%;
     margin-bottom: 20px;
