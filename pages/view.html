@@ -8,17 +8,19 @@
 <h1>{{ .Bookmark.Name }}</h1>
 {{ template "nav" . }}
 
+<hr>
+
 <turbo-frame id="entry-{{ .Bookmark.Id }}">
     <div class=bookmark-entry>
-        <strong><a href={{ .Bookmark.Url }}>{{ .Bookmark.Name }}</a></strong> —
-        {{ .Bookmark.Description }}
+        <a href={{ .Bookmark.Url }}>{{ .Bookmark.Name }}</a>
+        <p>{{ .Bookmark.Description }}</p>
         <div style="float: right">
             <a href="/bookmarks/edit/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}"><button>Edit</button></a>
         </div>
         <div>
             Tags:
             {{ range $tagIndex, $tagName := .Bookmark.Tags }}
-            {{ if ne $tagIndex 0 }}, {{ end }}{{ $tagName }}
+            {{- if ne $tagIndex 0 }}, {{ end }}{{ $tagName -}}
             {{ end }}
         </div>
     </div>

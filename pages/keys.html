@@ -10,33 +10,38 @@
 <h1>API Keys</h1>
 {{ template "nav" . }}
 
+<hr>
+
 <turbo-frame id="keys">
     <div data-controller="new-dialogue">
         <form method=POST action="/keys/create">
-            <input type=text name=name value="" autocomplete=off>
-            <input type=submit value="Create">
+            <input type=text name=name placeholder="Key name" value="" autocomplete=off>
+            <input type=submit value="Create new API key">
         </form>
     </div>
     {{ range . }}
     <div class=bookmark-entry>
         <div data-controller="bookmarklet-copier">
             <div data-controller="text-copier">
-                <p>{{ .Name }}:
-                    <input type=text readonly=readonly data-bookmarklet-copier-target="key"
-                        data-text-copier-target="text" value="{{ .Key }}">
-                </p>
-                <button data-action="click->text-copier#copy">Copy</button>
-                <button data-action="click->bookmarklet-copier#copy">Copy Bookmarklet</button>
+                <div class=keyname>{{ .Name }}</div>
+                <input class=long type=text readonly=readonly data-bookmarklet-copier-target="key"
+                    data-text-copier-target="text" value="{{ .Key }}">
+                <div class=spaced-buttons>
+                    <button data-action="click->text-copier#copy">Copy</button>
+                    <button data-action="click->bookmarklet-copier#copy">Copy Bookmarklet</button>
+                    <div data-controller="are-you-sure">
+                        <button data-are-you-sure-target="initial"
+                            data-action="click->are-you-sure#prime">Revoke</button>
+                        <form data-are-you-sure-target="primary" method=POST action="/keys/delete/{{ .Id }}"
+                            data-turbo-frame="list" style="display: none">
+                            Are you sure?&nbsp;
+                            <button>Revoke</button></a>&nbsp;
+                            <button type=button data-action="click->are-you-sure#cancel">Cancel</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
-        <div data-controller="are-you-sure"></div>
-        <button data-are-you-sure-target="initial" data-action="click->are-you-sure#prime">Revoke</button>
-        <form data-are-you-sure-target="primary" method=POST action="/keys/delete/{{ .Id }}" data-turbo-frame="list"
-            style="display: none">
-            Are you sure?&nbsp;
-            <button>Revoke</button></a>&nbsp;
-            <button type=button data-action="click->are-you-sure#cancel">Cancel</button>
-        </form>
     </div>
     </div>
     {{ end }}

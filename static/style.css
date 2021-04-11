@@ -1,7 +1,7 @@
 /**
  * Fonts
  */
-@import url('https://fonts.googleapis.com/css2?family=Lobster&family=Pacifico&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
 
 
 /**
@@ -34,16 +34,15 @@ a {
     margin: 0px auto;
     padding: 30px 40px;
     max-width: 650px;
-    line-height: 1.6;
-    font-size: 1.2em;
     font-family: sans-serif;
     color: #222;
-    background-color: #fff;
-    border: solid #222;
+    background-color: rgb(255, 255, 255, 0.7);
+    border-radius: 40px;
 }
 
 .bookmark-entry {
-    border: dashed #222;
+    /*background-color: rgba(0, 0, 0, 0.05);*/
+    border: #444 dashed;
     border-radius: 20px;
     padding: 3% 4%;
     margin: 5% 0%;
@@ -79,13 +78,78 @@ hr:after {
 
 .tag {
     text-decoration-style: dotted;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     margin-left: 10px;
 }
 
 .sortby {
-    font-size: 0.85rem;
+    font-size: 0.9;
     font-style: italic;
+}
+
+.back {
+    float: right;
+}
+
+.searchbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.taglist {
+    margin-top: 5px;
+}
+
+.editfield {
+    margin-top: 10px;
+}
+
+label.tight {
+    font-size: 0.8rem;
+    display: block;
+}
+
+.long {
+    width: 100%;
+}
+
+.spaced-buttons {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.editform {
+    position: relative;
+    padding-bottom: 50px;
+}
+
+.submit-button {
+    position: absolute;
+    bottom: 15px;
+    left: 20px;
+}
+
+.delete-button {
+    position: absolute;
+    bottom: 15px;
+    right: 20px;
+}
+
+.cancel {
+    float: right;
+    margin-bottom: 10px;
+}
+
+textarea.wide {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.keyname {
+    margin: 6px 0px;
 }
 
 button.link {
@@ -107,15 +171,4 @@ button.link {
     -moz-appearance: none;
     -webkit-logical-height: 1em; /* Chrome ignores auto, so we have to use this hack to set the correct height  */
     -webkit-logical-width: auto; /* Chrome ignores auto, but here for completeness */
-}
-
-.searchbar {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
-.searcharea {
-    margin: 0px 20px;
-    font-size: 0.9rem;
 }

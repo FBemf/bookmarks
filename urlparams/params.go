@@ -33,24 +33,31 @@ func SetPage(page string, p SearchParams) (SearchParams, error) {
 }
 
 func SetOrder(order string, p SearchParams) (SearchParams, error) {
-	var err error
 	p.Order = order
 	if p.Order != NORMAL_ORDER && order != REVERSE_ORDER {
 		return p, fmt.Errorf("illegal order %s", p.Order)
 	}
-	return p, err
+	return p, nil
 }
 
-func SetSearch(search string, p SearchParams) (SearchParams, error) {
-	var err error
+func SetSearch(search string, p SearchParams) SearchParams {
 	p.Search = search
-	return p, err
+	return p
 }
 
-func ClearTags(p SearchParams) (SearchParams, error) {
-	var err error
+func ClearTags(p SearchParams) SearchParams {
 	p.SearchTags = make([]string, 0)
-	return p, err
+	return p
+}
+
+func AddTag(tag string, p SearchParams) SearchParams {
+	for _, other := range p.SearchTags {
+		if other == tag {
+			return p
+		}
+	}
+	p.SearchTags = append(p.SearchTags, tag)
+	return p
 }
 
 func (p SearchParams) QueryString() template.URL {

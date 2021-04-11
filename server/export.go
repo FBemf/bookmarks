@@ -23,7 +23,7 @@ func export(templates *templates.Templates, ds *datastore.Datastore) httprouter.
 			}
 			exportData = string(exportBytes)
 		} else {
-			exportData = ""
+			exportData = "Press \"Export Data\" to populate this field with your data."
 		}
 
 		err = templates.Export.ExecuteTemplate(resp, "base", exportData)

@@ -17,17 +17,18 @@
 <turbo-frame id="list">
     <h2>Search</h2>
     <form action='/bookmarks{{ $searchParams |  paramSetSearch "" | paramClearTags | paramQueryString }}' method=GET>
-        <div class=searcharea data-controller="bookmark-tagger">
+        <div data-controller="bookmark-tagger">
             <div class=searchbar>
                 <div>
+                    <input type=text name=search placeholder="Search…" value="{{ $searchParams.Search }}"
+                        autocomplete=off>
                     <input data-bookmark-tagger-target="tagName" data-action="keydown->bookmark-tagger#addSearchTag"
                         type=text placeholder="Tag name" value="" autocomplete=off>
                     <button type=button data-action="click->bookmark-tagger#addSearchTag">Add tag</button>
                 </div>
-                <input type=text name=search placeholder="Search…" value="{{ $searchParams.Search }}" autocomplete=off>
                 <input type=submit value="Go!">
             </div>
-            <div data-bookmark-tagger-target="tagList">
+            <div class=taglist data-bookmark-tagger-target="tagList">
                 {{ range $searchParams.SearchTags }}
                 <span class=tag data-controller="tag" data-tag-target="self">
                     <input type=hidden name=searchTag readonly=readonly value="{{ . }}">
@@ -37,11 +38,6 @@
                 </span>
                 {{ end }}
             </div>
-            {{ if or ($searchParams.Search) (ne (len $searchParams.SearchTags) 0) }}
-            <a class=back href='/bookmarks{{ $searchParams | paramSetSearch "" | paramClearTags | paramQueryString }}'>
-                &nbsp;Back ↩︎
-            </a>
-            {{ end }}
         </div>
     </form>
     <p class=sortby>
@@ -52,14 +48,24 @@
         Sorting by newest.
         <a href='/bookmarks{{ $searchParams | paramSetOrder "reverse" | paramQueryString }}'>Sort by oldest?</a>
         {{ end }}
+        {{ if or ($searchParams.Search) (ne (len $searchParams.SearchTags) 0) }}
+        <a class=back href='/bookmarks{{ $searchParams | paramSetSearch "" | paramClearTags | paramQueryString }}'>
+            Back ↩︎
+        </a>
+        {{ end }}
     </p>
+
+    <hr>
 
     <div data-controller="new-dialogue">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2>
-                {{ if $searchParams.Search }}Searching "{{ $searchParams.Search}}"{{ end }}
-                {{ if $searchParams.SearchTags }}{{ if $searchParams.Search }}and f{{ else }}F{{ end }}iltering by
-                tags{{ end }}
+                {{ if $searchParams.Search -}}
+                Searching "{{ $searchParams.Search}}"
+                {{- end -}}
+                {{ if $searchParams.SearchTags -}}
+                {{ if $searchParams.Search }}and f{{ else }}F{{ end }}iltering by tags
+                {{- end }}
                 {{ if not (or $searchParams.Search $searchParams.SearchTags) }}All bookmarks{{ end }}
             </h2>
             <div>
@@ -86,17 +92,18 @@
     {{ range .Bookmarks }}
     <turbo-frame id="entry-{{ .Id }}">
         <div class=bookmark-entry>
-            <strong><a href={{ .Url }}>{{ .Name }}</a></strong> —
-            {{ .Description }}
+            <a href={{ .Url }}>{{ .Name }}</a>
+            <p>{{ .Description }}</p>
             <div style="float: right">
                 <a href="/bookmarks/edit/{{ .Id }}{{ $searchParams | paramQueryString }}"><button>Edit</button></a>
             </div>
-            <div>
+            <turbo-frame target="list">
                 Tags:
                 {{ range $tagIndex, $tagName := .Tags }}
-                {{ if ne $tagIndex 0 }}, {{ end }}{{ $tagName }}
-                {{ end }}
-            </div>
+                {{- if ne $tagIndex 0 }}, {{ end -}}
+                <a href="/bookmarks{{ $searchParams | paramAddTag $tagName | paramQueryString }}">{{ $tagName }}</a>
+                {{- end }}
+            </turbo-frame>
         </div>
     </turbo-frame>
     {{ end }}
