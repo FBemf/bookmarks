@@ -143,6 +143,10 @@ label.tight {
     margin-bottom: 10px;
 }
 
+.spacer {
+    height: 20px;
+}
+
 textarea.wide {
     width: 100%;
     margin-bottom: 20px;
