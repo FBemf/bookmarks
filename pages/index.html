@@ -91,22 +91,7 @@
         </div>
     </div>
     {{ range .Bookmarks }}
-    <turbo-frame id="entry-{{ .Id }}">
-        <div class="list-entry">
-            <a href="{{ .Url }}">{{ .Name }}</a>
-            <p>{{ .Description }}</p>
-            <div style="float: right">
-                <a href="/bookmarks/edit/{{ .Id }}{{ $searchParams | paramQueryString }}"><button>Edit</button></a>
-            </div>
-            <turbo-frame target="list">
-                Tags:
-                {{ range $tagIndex, $tagName := .Tags }}
-                {{- if ne $tagIndex 0 }}, {{ end -}}
-                <a href="/bookmarks{{ $searchParams | paramAddTag $tagName | paramQueryString }}">{{ $tagName }}</a>
-                {{- end }}
-            </turbo-frame>
-        </div>
-    </turbo-frame>
+    {{ template "bookmark" (bookmarkAndParams . $searchParams) }}
     {{ end }}
 
     <p>

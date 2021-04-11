@@ -3,6 +3,7 @@ package templates
 import (
 	"html/template"
 	"io/fs"
+	"local/bookmarks/datastore"
 	"local/bookmarks/urlparams"
 )
 
@@ -18,12 +19,13 @@ type Templates struct {
 func functions() *template.Template {
 	return template.New("").
 		Funcs(template.FuncMap{
-			"paramSetPage":     urlparams.SetPage,
-			"paramSetOrder":    urlparams.SetOrder,
-			"paramSetSearch":   urlparams.SetSearch,
-			"paramClearTags":   urlparams.ClearTags,
-			"paramAddTag":      urlparams.AddTag,
-			"paramQueryString": urlparams.SearchParams.QueryString,
+			"bookmarkAndParams": bookmarkAndParams,
+			"paramSetPage":      urlparams.SetPage,
+			"paramSetOrder":     urlparams.SetOrder,
+			"paramSetSearch":    urlparams.SetSearch,
+			"paramClearTags":    urlparams.ClearTags,
+			"paramAddTag":       urlparams.AddTag,
+			"paramQueryString":  urlparams.SearchParams.QueryString,
 		})
 }
 
@@ -42,4 +44,13 @@ func CreateTemplates(templateFS fs.FS) Templates {
 		EditBookmark: edit,
 		ViewBookmark: view,
 	}
+}
+
+type bookmarkAndParamsData struct {
+	Bookmark     datastore.Bookmark
+	SearchParams urlparams.SearchParams
+}
+
+func bookmarkAndParams(bookmark datastore.Bookmark, params urlparams.SearchParams) bookmarkAndParamsData {
+	return bookmarkAndParamsData{bookmark, params}
 }

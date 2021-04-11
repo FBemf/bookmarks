@@ -101,7 +101,8 @@ func (ds *Datastore) CreateBookmark(name, url, description string, tags []string
 }
 
 func setBookmarkTags(bookmarkId int64, tags []string, tx *sql.Tx) error {
-	for _, tag := range tags {
+	lowerTags := stringsToLower(tags)
+	for _, tag := range lowerTags {
 		var exists int
 		err := tx.QueryRow(`select count(*) from tag where name = ?`, tag).Scan(&exists)
 		if err != nil {
@@ -135,7 +136,7 @@ func setBookmarkTags(bookmarkId int64, tags []string, tx *sql.Tx) error {
 	// clear bookmarks we didn't just insert
 	query := fmt.Sprintf(
 		`delete from tag_bookmark where bookmark = ? and tag not in (select id from tag where name in (%s))`,
-		quoteStrings(tags),
+		quoteStrings(lowerTags),
 	)
 	_, err := tx.Exec(query, bookmarkId)
 	if err != nil {
@@ -194,10 +195,11 @@ func (ds *Datastore) GetBookmarks(info QueryInfo) ([]Bookmark, error) {
 	} else {
 		order = "desc"
 	}
+	tags := stringsToLower(info.Tags)
 
 	var rows *sql.Rows
 	var err error
-	if len(info.Tags) == 0 {
+	if len(tags) == 0 {
 		if info.Search == "" {
 			query := fmt.Sprintf(`select * from bookmark order by date %s limit ? offset ?`, order)
 			rows, err = ds.db.Query(query, info.Number, info.Offset)
@@ -224,7 +226,7 @@ func (ds *Datastore) GetBookmarks(info QueryInfo) ([]Bookmark, error) {
 			) as t on bookmark.id = t.bookmark
 			where bookmark.name like $1 or url like $1 or description like $1
 			order by date %s limit $2 offset $3`,
-			quoteStrings(info.Tags), len(info.Tags), order)
+			quoteStrings(tags), len(tags), order)
 		pattern := "%" + info.Search + "%"
 		rows, err = ds.db.Query(query, pattern, info.Number, info.Offset)
 		if err != nil {
@@ -263,7 +265,6 @@ func (ds *Datastore) getTags(bookmarkId int64) ([]string, error) {
 		if err != nil {
 			return tags, fmt.Errorf("scanning bookmark: %w", err)
 		}
-
 		tags = append(tags, tag)
 	}
 	return tags, nil
@@ -310,4 +311,12 @@ func quoteStrings(value []string) string {
 func (ds *Datastore) deleteDanglingTags() error {
 	_, err := ds.db.Exec(`delete from tag where (select count(*) from tag_bookmark where tag = id) = 0`)
 	return err
+}
+
+func stringsToLower(input []string) []string {
+	output := make([]string, 0, len(input))
+	for _, s := range input {
+		output = append(output, strings.ToLower(s))
+	}
+	return output
 }

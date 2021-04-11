@@ -29,3 +29,23 @@
     <a href="/logout">Log out</a>
 </p>
 {{ end }}
+
+{{ define "bookmark" }}
+{{ $searchParams := .SearchParams }}
+<turbo-frame id="entry-{{ .Bookmark.Id }}">
+    <div class="list-entry">
+        <a href="{{ .Bookmark.Url }}">{{ .Bookmark.Name }}</a>
+        <p>{{ .Bookmark.Description }}</p>
+        <div style="float: right">
+            <a href="/bookmarks/edit/{{ .Bookmark.Id }}{{ $searchParams | paramQueryString }}"><button>Edit</button></a>
+        </div>
+        <div>
+            Tags:
+            {{ range $tagIndex, $tagName := .Bookmark.Tags }}
+            {{- if ne $tagIndex 0 }}, {{ end -}}
+            <a href="/bookmarks{{  $searchParams | paramAddTag $tagName | paramQueryString }}">{{ $tagName }}</a>
+            {{- end }}
+        </div>
+    </div>
+</turbo-frame>
+{{ end }}
