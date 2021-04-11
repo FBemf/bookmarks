@@ -11,6 +11,7 @@ import (
 
 func export(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		req.ParseForm()
 		really := req.Form.Get("really")
 		var exportData string
@@ -31,7 +32,5 @@ func export(templates *templates.Templates, ds *datastore.Datastore) httprouter.
 			log.Printf("writing template: %v", err)
 			return
 		}
-
-		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	}
 }

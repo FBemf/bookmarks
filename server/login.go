@@ -16,6 +16,7 @@ type loginData struct {
 
 func loginPage(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		req.ParseForm()
 		failed := req.Form.Get("failed")
 		var data loginData
@@ -37,7 +38,6 @@ func loginPage(templates *templates.Templates, ds *datastore.Datastore) httprout
 				log.Printf("writing template: %s", err)
 				return
 			}
-			resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		}
 	}
 }

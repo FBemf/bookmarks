@@ -26,6 +26,7 @@ type bookmarkData struct {
 
 func index(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		urlParams, err := urlparams.GetUrlParams(req)
 		if err != nil {
 			ErrorPage(resp, http.StatusBadRequest)
@@ -62,13 +63,12 @@ func index(templates *templates.Templates, ds *datastore.Datastore) httprouter.H
 			log.Printf("writing template: %v", err)
 			return
 		}
-
-		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	}
 }
 
 func viewBookmark(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		urlParams, err := urlparams.GetUrlParams(req)
 		if err != nil {
 			ErrorPage(resp, http.StatusBadRequest)
@@ -92,13 +92,12 @@ func viewBookmark(templates *templates.Templates, ds *datastore.Datastore) httpr
 			log.Printf("writing template: %v", err)
 			return
 		}
-
-		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	}
 }
 
 func editBookmark(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		urlParams, err := urlparams.GetUrlParams(req)
 		if err != nil {
 			ErrorPage(resp, http.StatusBadRequest)
@@ -122,8 +121,6 @@ func editBookmark(templates *templates.Templates, ds *datastore.Datastore) httpr
 			log.Printf("writing template: %v", err)
 			return
 		}
-
-		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	}
 }
 

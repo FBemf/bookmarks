@@ -17,6 +17,7 @@ const tokenType = "Bearer "
 
 func keys(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		keys, err := ds.ListKeys()
 		if err != nil {
 			ErrorPage(resp, http.StatusInternalServerError)
@@ -30,8 +31,6 @@ func keys(templates *templates.Templates, ds *datastore.Datastore) httprouter.Ha
 			log.Printf("writing template: %v", err)
 			return
 		}
-
-		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	}
 }
 
