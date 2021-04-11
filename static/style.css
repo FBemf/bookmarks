@@ -3,6 +3,7 @@
  */
 @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
 
+
 /**
  *  Variables
  */
@@ -16,6 +17,13 @@
 /**
  *  Generic types
  */
+html {
+  /* Prevents centred element from moving around
+     when the scrollbar pop up */
+  width: 100vw;
+  overflow-x: hidden;
+}
+
 h1, h2, h3 {
     line-height: 1.2;
     font-family: Pacifico, serif;
@@ -25,6 +33,7 @@ a {
     color: var(--accent-colour);
     text-decoration: none;
 }
+
 
 /**
  *  Custom Types
@@ -128,6 +137,14 @@ textarea.wide {
     margin: 6px 0px;
 }
 
+.login-failed {
+  animation: fadeIn linear 0.5s;
+  -webkit-animation: fadeIn linear 0.5s;
+  -moz-animation: fadeIn linear 0.5s;
+  -o-animation: fadeIn linear 0.5s;
+  -ms-animation: fadeIn linear 0.5s;
+}
+
 
 /**
  *  Verbose, fancy stuff
@@ -191,3 +208,27 @@ hr:after {
     right: -18px;    
 }
 
+@keyframes fadeIn {
+  0% {opacity:0;}
+  100% {opacity:1;}
+}
+
+@-moz-keyframes fadeIn {
+  0% {opacity:0;}
+  100% {opacity:1;}
+}
+
+@-webkit-keyframes fadeIn {
+  0% {opacity:0;}
+  100% {opacity:1;}
+}
+
+@-o-keyframes fadeIn {
+  0% {opacity:0;}
+  100% {opacity:1;}
+}
+
+@-ms-keyframes fadeIn {
+  0% {opacity:0;}
+  100% {opacity:1;}
+}

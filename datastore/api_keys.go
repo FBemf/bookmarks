@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const API_KEY_SIZE = 32
+
 type ApiKey struct {
 	Id   int64
 	Name string
@@ -15,14 +17,14 @@ type ApiKey struct {
 }
 
 func (ds *Datastore) CreateKey(name string) error {
-	uuidBytes := make([]byte, 16)
-	_, err := rand.Read(uuidBytes)
+	keyBytes := make([]byte, 32)
+	_, err := rand.Read(keyBytes)
 	if err != nil {
 		return fmt.Errorf("generating cookie: %w", err)
 	}
-	uuid := hex.EncodeToString(uuidBytes)
+	key := hex.EncodeToString(keyBytes)
 	timestamp := time.Now().UTC()
-	_, err = ds.db.Exec(`insert into api_key (name, key, timestamp) values (?, ?, ?)`, name, uuid, timestamp)
+	_, err = ds.db.Exec(`insert into api_key (name, key, timestamp) values (?, ?, ?)`, name, key, timestamp)
 	if err != nil {
 		return fmt.Errorf("inserting key: %w", err)
 	}

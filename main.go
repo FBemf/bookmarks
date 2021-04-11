@@ -54,8 +54,9 @@ func main() {
 }
 
 type serveConfig struct {
-	port   uint
-	dbFile string
+	port            uint
+	dbFile          string
+	sessionAgeHours uint
 }
 
 func serverCommand() command {
@@ -63,6 +64,7 @@ func serverCommand() command {
 	flags := flag.NewFlagSet("serve", flag.ContinueOnError)
 	flags.UintVar(&config.port, "port", 8080, "port to serve on")
 	flags.StringVar(&config.dbFile, "db", "./bookmarks.db", "location of the bookmarks database")
+	flags.UintVar(&config.sessionAgeHours, "session-age", 24*30, "max number of hours that a session should stay alive")
 	return command{
 		flags: flags,
 		run: func() {
@@ -85,7 +87,13 @@ func serve(config serveConfig) {
 		log.Fatalf("opening database file %s: %s", config.dbFile, err)
 	}
 
-	ds.CleanUpCookies(time.Hour * 24 * 30)
+	go func() {
+		// clean up cookies every hour
+		for {
+			ds.CleanUpCookies(time.Hour * time.Duration(config.sessionAgeHours))
+			time.Sleep(time.Hour)
+		}
+	}()
 
 	router := server.MakeRouter(&templates, static, ds)
 	log.Printf("Serving HTTP on port %d\n", config.port)

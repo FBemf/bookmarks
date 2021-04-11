@@ -11,8 +11,9 @@ import (
 )
 
 const AUTH_COOKIE_NAME = "bookmark_auth"
-const AUTH_COOKIE_SIZE = 16
+const AUTH_COOKIE_SIZE = 32
 const AUTH_COOKIE_TTL = 30 * 24 * 60 * 60 * time.Second // 30 days in seconds
+const SALT_SIZE = 16
 
 func (ds *Datastore) GetSession(cookie string) (string, bool, error) {
 	var user int64
@@ -42,15 +43,11 @@ func (ds *Datastore) GetSession(cookie string) (string, bool, error) {
 }
 
 func (ds *Datastore) AddUser(username, password string) error {
-	saltBytes := make([]byte, 16)
-	_, err := rand.Read(saltBytes)
-	salt := hex.EncodeToString(saltBytes)
+	salt, err := createSalt()
 	if err != nil {
-		return fmt.Errorf("generating salt: %w", err)
+		return fmt.Errorf("creating salt: %w", err)
 	}
-	hasher := crypto.SHA512.New()
-	hashBytes := hasher.Sum([]byte(password + salt))
-	hash := hex.EncodeToString(hashBytes)
+	hash := hashPassword(password, salt)
 	_, err = ds.db.Exec(`insert into user (username, password_hash, salt) values (?, ?, ?)`, username, hash, salt)
 	if err != nil {
 		return fmt.Errorf("inserting new user: %w", err)
@@ -59,20 +56,33 @@ func (ds *Datastore) AddUser(username, password string) error {
 }
 
 func (ds *Datastore) ChangeUserPassword(username, password string) error {
-	saltBytes := make([]byte, 16)
-	_, err := rand.Read(saltBytes)
-	salt := hex.EncodeToString(saltBytes)
+	salt, err := createSalt()
 	if err != nil {
-		return fmt.Errorf("generating salt: %w", err)
+		return fmt.Errorf("creating salt: %w", err)
 	}
-	hasher := crypto.SHA512.New()
-	hashBytes := hasher.Sum([]byte(password + salt))
-	hash := hex.EncodeToString(hashBytes)
+	hash := hashPassword(password, salt)
 	_, err = ds.db.Exec(`update user set password_hash = ?, salt = ? where username = ?`, hash, salt, username)
 	if err != nil {
 		return fmt.Errorf("updating user: %w", err)
 	}
 	return nil
+}
+
+func createSalt() (string, error) {
+	saltBytes := make([]byte, SALT_SIZE)
+	_, err := rand.Read(saltBytes)
+	salt := hex.EncodeToString(saltBytes)
+	if err != nil {
+		return "", fmt.Errorf("generating salt: %w", err)
+	}
+	return salt, nil
+}
+
+func hashPassword(password, salt string) string {
+	hasher := crypto.SHA512.New()
+	hashBytes := hasher.Sum([]byte(password + salt))
+	hash := hex.EncodeToString(hashBytes)
+	return hash
 }
 
 func (ds *Datastore) ListUsers() ([]string, error) {
@@ -114,9 +124,7 @@ func (ds *Datastore) AuthenticateUser(username, password string) (int64, bool, e
 		return 0, false, fmt.Errorf("finding user: %w", err)
 	}
 
-	hasher := crypto.SHA512.New()
-	hashBytes := hasher.Sum([]byte(password + salt))
-	new_hash := hex.EncodeToString(hashBytes)
+	new_hash := hashPassword(password, salt)
 
 	if stored_hash == new_hash {
 		return userId, true, nil
@@ -131,20 +139,20 @@ func (ds *Datastore) RemoveUser(username string) error {
 }
 
 func (ds *Datastore) CreateSession(user int64) (http.Cookie, error) {
-	uuidBytes := make([]byte, 16)
-	_, err := rand.Read(uuidBytes)
+	cookieBytes := make([]byte, AUTH_COOKIE_SIZE)
+	_, err := rand.Read(cookieBytes)
 	if err != nil {
 		return http.Cookie{}, fmt.Errorf("generating cookie: %w", err)
 	}
-	uuid := hex.EncodeToString(uuidBytes)
+	cookie := hex.EncodeToString(cookieBytes)
 	timestamp := time.Now().UTC()
-	_, err = ds.db.Exec(`insert into session (user, timestamp, cookie) values (?, ?, ?)`, user, timestamp, uuid)
+	_, err = ds.db.Exec(`insert into session (user, timestamp, cookie) values (?, ?, ?)`, user, timestamp, cookie)
 	if err != nil {
 		return http.Cookie{}, fmt.Errorf("inserting session: %w", err)
 	}
 	return http.Cookie{
 		Name:     AUTH_COOKIE_NAME,
-		Value:    uuid,
+		Value:    cookie,
 		SameSite: http.SameSiteLaxMode,
 		Secure:   true,
 	}, nil
