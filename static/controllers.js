@@ -124,11 +124,14 @@ if (got == null || got == "") { break; }
 tags.push(got);
 }
 let queryUrl = "${window.location.protocol}//${window.location.hostname}${port}/api/newbookmark";
+try {
 fetch(queryUrl, {
 method: "POST",
 headers: {"Authorization": auth},
 body: JSON.stringify({name: name, url: url, description: description, tags: tags}),
-})})()`
+})} catch(e) {
+alert("Failed to create bookmark!\n" + String(e))
+}})()`
             textElement.select()
             document.execCommand("copy")
             textElement.parentNode.removeChild(textElement)
