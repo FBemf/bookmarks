@@ -17,10 +17,12 @@
  *  Generic types
  */
 html {
-  /* Prevents centred element from moving around
-     when the scrollbar pop up */
-  width: 100vw;
-  overflow-x: hidden;
+    /* Prevents centred element from moving around
+        when the scrollbar pop up */
+    width: 100vw;
+    overflow-x: hidden;
+    margin: 0px, 0px;
+    padding: 0px, 0px;
 }
 
 h1, h2, h3 {
@@ -46,7 +48,7 @@ a {
     font-family: sans-serif;
     color: var(--body-colour);
     background-color: rgb(255, 255, 255, 0.7);
-    border-radius: 40px;
+    font-size: 1em;
 }
 
 .list-entry {
@@ -68,7 +70,7 @@ a {
 }
 
 .sortby {
-    font-size: 0.9;
+    font-size: 0.9rem;
     font-style: italic;
 }
 
@@ -86,6 +88,7 @@ a {
     margin-top: 10px;
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: space-between;
 }
 
