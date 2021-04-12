@@ -17,6 +17,7 @@ type indexData struct {
 	Bookmarks    []datastore.Bookmark
 	Pager        pager
 	SearchParams urlparams.SearchParams
+	NumBookmarks int64
 }
 
 type bookmarkData struct {
@@ -57,7 +58,7 @@ func index(templates *templates.Templates, ds *datastore.Datastore) httprouter.H
 
 		pager := createPager(urlParams.Page, int(numBookmarks+PAGE_SIZE-1)/PAGE_SIZE, PAGER_SIDE_SIZE)
 		err = templates.Index.ExecuteTemplate(resp, "base",
-			indexData{bookmarks, pager, urlParams})
+			indexData{bookmarks, pager, urlParams, numBookmarks})
 		if err != nil {
 			ErrorPage(resp, http.StatusInternalServerError)
 			log.Printf("writing template: %v", err)

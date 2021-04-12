@@ -41,6 +41,7 @@
         </div>
     </form>
     <p class="sortby">
+        Showing {{ .NumBookmarks }} bookmark{{ if ne .NumBookmarks 1 }}s{{ end }}.
         {{ if eq $searchParams.Order "reverse" }}
         Sorting by oldest.
         <a href='/bookmarks{{ $searchParams | paramSetOrder "normal" | paramQueryString }}'>Sort by newest?</a>

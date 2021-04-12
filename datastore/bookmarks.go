@@ -25,16 +25,16 @@ type Bookmark struct {
 type QueryInfo struct {
 	Reverse bool
 	Search  string
-	Number  uint
+	Number  uint64
 	Offset  uint
 	Tags    []string
 }
 
-func NewQueryInfo(pageSize uint) QueryInfo {
+func NewQueryInfo(pageSize int64) QueryInfo {
 	return QueryInfo{
 		Reverse: false,
 		Search:  "",
-		Number:  pageSize,
+		Number:  uint64(pageSize),
 		Offset:  0,
 		Tags:    make([]string, 0),
 	}
@@ -56,7 +56,7 @@ func (ds *Datastore) GetBookmark(id int64) (Bookmark, error) {
 	if err != nil {
 		return result, fmt.Errorf("retrieving bookmark: %w", err)
 	}
-	result.Tags, err = ds.getTags(id)
+	result.Tags, err = ds.getBookmarkTags(id)
 	if err != nil {
 		return result, fmt.Errorf("retrieving tags: %w", err)
 	}
@@ -98,52 +98,6 @@ func (ds *Datastore) CreateBookmark(name, url, description string, tags []string
 		return fmt.Errorf("committing transaction: %w", err)
 	}
 	return err
-}
-
-func setBookmarkTags(bookmarkId int64, tags []string, tx *sql.Tx) error {
-	lowerTags := stringsToLower(tags)
-	for _, tag := range lowerTags {
-		var exists int
-		err := tx.QueryRow(`select count(*) from tag where name = ?`, tag).Scan(&exists)
-		if err != nil {
-			return fmt.Errorf("finding whether tag %s exists: %w", tag, err)
-		}
-
-		var tagId int64
-		if exists == 0 {
-			result, err := tx.Exec(`insert or ignore into tag (name) values (?)`, tag)
-			if err != nil {
-				return fmt.Errorf("creating tag %s: %w", tag, err)
-			}
-
-			tagId, err = result.LastInsertId()
-			if err != nil {
-				return fmt.Errorf("getting tag %s id: %w", tag, err)
-			}
-		} else {
-			err = tx.QueryRow(`select id from tag where name = ?`, tag).Scan(&tagId)
-			if err != nil {
-				return fmt.Errorf("getting id of tag %s: %w", tag, err)
-			}
-		}
-
-		_, err = tx.Exec(`insert or ignore into tag_bookmark (tag, bookmark) values (?, ?)`, tagId, bookmarkId)
-		if err != nil {
-			return fmt.Errorf("tagging bookmark %d with tag %s: %w", bookmarkId, tag, err)
-		}
-	}
-
-	// clear bookmarks we didn't just insert
-	query := fmt.Sprintf(
-		`delete from tag_bookmark where bookmark = ? and tag not in (select id from tag where name in (%s))`,
-		quoteStrings(lowerTags),
-	)
-	_, err := tx.Exec(query, bookmarkId)
-	if err != nil {
-		return fmt.Errorf("deleting extra tags: %w", err)
-	}
-
-	return nil
 }
 
 func (ds *Datastore) UpdateBookmark(id int64, name, url, description string, tags []string) error {
@@ -240,7 +194,7 @@ func (ds *Datastore) GetBookmarks(info QueryInfo) ([]Bookmark, error) {
 			return result, fmt.Errorf("scanning bookmark: %w", err)
 		}
 
-		b.Tags, err = ds.getTags(b.Id)
+		b.Tags, err = ds.getBookmarkTags(b.Id)
 		if err != nil {
 			return result, fmt.Errorf("getting tags for bookmark %d: %w", b.Id, err)
 		}
@@ -250,37 +204,52 @@ func (ds *Datastore) GetBookmarks(info QueryInfo) ([]Bookmark, error) {
 	return result, nil
 }
 
-func (ds *Datastore) getTags(bookmarkId int64) ([]string, error) {
-	rows, err := ds.db.Query(
-		`select name from tag_bookmark inner join tag on tag.id = tag_bookmark.tag where tag_bookmark.bookmark = ?`,
-		bookmarkId)
-	if err != nil {
-		return nil, fmt.Errorf("getting tags: %w", err)
-	}
-
-	tags := make([]string, 0, 10)
-	for rows.Next() {
-		var tag string
-		err = rows.Scan(&tag)
-		if err != nil {
-			return tags, fmt.Errorf("scanning bookmark: %w", err)
-		}
-		tags = append(tags, tag)
-	}
-	return tags, nil
-}
-
-func (ds *Datastore) GetNumBookmarks(info QueryInfo) (uint, error) {
-	var count uint
-	var err error
-	if info.Search == "" {
-		err = ds.db.QueryRow(`select count(*) from bookmark`).Scan(&count)
+func (ds *Datastore) GetNumBookmarks(info QueryInfo) (int64, error) {
+	var order string
+	if info.Reverse {
+		order = "asc"
 	} else {
-		err = ds.db.QueryRow(`select count(*) from bookmark
-			where name like $1 or url like $1 or description like $1`, "%"+info.Search+"%").
-			Scan(&count)
+		order = "desc"
 	}
-	return count, err
+	tags := stringsToLower(info.Tags)
+
+	var count int64
+	var err error
+	if len(tags) == 0 {
+		if info.Search == "" {
+			query := fmt.Sprintf(`select count(*) from bookmark order by date %s limit ? offset ?`, order)
+			err = ds.db.QueryRow(query, info.Number, info.Offset).Scan(&count)
+			if err != nil {
+				return 0, fmt.Errorf("fetching bookmarks: %w", err)
+			}
+		} else {
+			query := fmt.Sprintf(`select count(*) from bookmark
+				where bookmark.name like $1 or url like $1 or description like $1
+				order by date %s limit $2 offset $3`, order)
+			err = ds.db.QueryRow(query, "%"+info.Search+"%", info.Number, info.Offset).Scan(&count)
+			if err != nil {
+				return 0, fmt.Errorf("fetching bookmarks: %w", err)
+			}
+		}
+	} else {
+		query := fmt.Sprintf(`select count(*) from bookmark
+			join (
+				select * from tag_bookmark
+				join tag on tag.id = tag_bookmark.tag
+				where tag.name in (%s)
+				group by bookmark
+				having count(distinct tag.id) = %d
+			) as t on bookmark.id = t.bookmark
+			where bookmark.name like $1 or url like $1 or description like $1
+			order by date %s limit $2 offset $3`,
+			quoteStrings(tags), len(tags), order)
+		pattern := "%" + info.Search + "%"
+		err = ds.db.QueryRow(query, pattern, info.Number, info.Offset).Scan(&count)
+		if err != nil {
+			return 0, fmt.Errorf("fetching bookmarks: %w", err)
+		}
+	}
+	return count, nil
 }
 
 func (ds *Datastore) Export() ([]byte, error) {

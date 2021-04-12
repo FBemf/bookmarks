@@ -12,7 +12,6 @@ import (
 
 const bookmarksPrefix = "/bookmarks"
 const keysPrefix = "/keys"
-const exportPrefix = "/export"
 const apiPrefix = "/api"
 
 type middleware = func(httprouter.Handle) httprouter.Handle
@@ -48,7 +47,8 @@ func routeProtected(router *httprouter.Router, templates *templates.Templates, d
 	router.POST(keysPrefix+"/create", middleware(createKey(templates, ds)))
 	router.POST(keysPrefix+"/delete/:id", middleware(deleteKey(templates, ds)))
 
-	router.GET(exportPrefix, middleware(export(templates, ds)))
+	router.GET("/export", middleware(export(templates, ds)))
+	router.GET("/tags", middleware(tags(templates, ds)))
 }
 
 type RequestLogger struct {

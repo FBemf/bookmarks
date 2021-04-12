@@ -11,6 +11,7 @@ type Templates struct {
 	Login        *template.Template
 	ApiKeys      *template.Template
 	Export       *template.Template
+	Tags         *template.Template
 	Index        *template.Template
 	EditBookmark *template.Template
 	ViewBookmark *template.Template
@@ -35,6 +36,7 @@ func CreateTemplates(templateFS fs.FS) Templates {
 	apiKeys := template.Must(functions().ParseFS(templateFS, "pages/base.html", "pages/keys.html"))
 	export := template.Must(functions().ParseFS(templateFS, "pages/base.html", "pages/export.html"))
 	index := template.Must(functions().ParseFS(templateFS, "pages/base.html", "pages/index.html"))
+	tags := template.Must(functions().ParseFS(templateFS, "pages/base.html", "pages/tags.html"))
 	edit := template.Must(functions().ParseFS(templateFS, "pages/base.html", "pages/edit.html"))
 	view := template.Must(functions().ParseFS(templateFS, "pages/base.html", "pages/view.html"))
 	return Templates{
@@ -42,6 +44,7 @@ func CreateTemplates(templateFS fs.FS) Templates {
 		ApiKeys:      apiKeys,
 		Export:       export,
 		Index:        index,
+		Tags:         tags,
 		EditBookmark: edit,
 		ViewBookmark: view,
 	}

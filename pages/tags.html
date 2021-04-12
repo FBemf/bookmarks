@@ -1,0 +1,20 @@
+{{ template "base" . }}
+
+{{ define "head" }}
+<title>Tags</title>
+<script src="https://unpkg.com/stimulus/dist/stimulus.umd.js"></script>
+<script src="/static/controllers.js"></script>
+{{ end }}
+
+{{ define "body" }}
+
+<h1>Tags</h1>
+{{ template "nav" . }}
+<hr>
+{{ range . }}
+<div class="list-entry tag-info">
+    <a href="/bookmarks?searchTag={{ .Name }}">{{ .Name }}</a>
+    <span>{{ .Count }} bookmark{{ if ne .Count 1}}s{{ end }}</span>
+</div>
+{{ end }}
+{{ end }}

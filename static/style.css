@@ -154,6 +154,12 @@ textarea.wide {
   -ms-animation: fadeIn linear 0.5s;
 }
 
+.tag-info {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
 
 /**
  *  Verbose, fancy stuff
