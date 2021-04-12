@@ -1,10 +1,4 @@
 /**
- *  Fonts
- */
-@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
-
-
-/**
  *  Variables
  */
 :root {
@@ -27,7 +21,7 @@ html {
 
 h1, h2, h3 {
     line-height: 1.2;
-    font-family: Pacifico, serif;
+    font-family: sans-serif;
 }
 
 a {
