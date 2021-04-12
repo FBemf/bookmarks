@@ -36,21 +36,27 @@ func MakeRouter(templates *templates.Templates, static fs.FS, ds *datastore.Data
 
 func routeProtected(router *httprouter.Router, templates *templates.Templates, ds *datastore.Datastore) {
 	// Note: because we use same-site=lax cookies, all dangerous endpoints have to be POSTs
-	// Also, all form endpoints (i.e. all POSTs) must have csrf middleware
 	auth := auth(ds, "/login")
-	router.GET(bookmarksPrefix, auth(index(templates, ds)))
-	router.GET(bookmarksPrefix+"/edit/:id", auth(editBookmark(templates, ds)))
-	router.GET(bookmarksPrefix+"/view/:id", auth(viewBookmark(templates, ds)))
-	router.POST(bookmarksPrefix+"/create", auth(csrf(submitNewBookmark(ds))))
-	router.POST(bookmarksPrefix+"/edit/:id", auth(csrf(submitEditedBookmark(ds))))
-	router.POST(bookmarksPrefix+"/delete/:id", auth(csrf(deleteBookmark(ds))))
+	GET := func(path string, handler sessionHandler) {
+		router.GET(path, auth(handler))
+	}
+	POST := func(path string, handler sessionHandler) {
+		router.POST(path, auth(csrf(handler)))
+	}
 
-	router.GET(keysPrefix, auth(keys(templates, ds)))
-	router.POST(keysPrefix+"/create", auth(csrf(createKey(templates, ds))))
-	router.POST(keysPrefix+"/delete/:id", auth(csrf(deleteKey(templates, ds))))
+	GET(bookmarksPrefix, index(templates, ds))
+	GET(bookmarksPrefix+"/edit/:id", editBookmark(templates, ds))
+	GET(bookmarksPrefix+"/view/:id", viewBookmark(templates, ds))
+	POST(bookmarksPrefix+"/create", submitNewBookmark(ds))
+	POST(bookmarksPrefix+"/edit/:id", submitEditedBookmark(ds))
+	POST(bookmarksPrefix+"/delete/:id", deleteBookmark(ds))
 
-	router.GET("/export", auth(export(templates, ds)))
-	router.GET("/tags", auth(tags(templates, ds)))
+	GET(keysPrefix, keys(templates, ds))
+	POST(keysPrefix+"/create", createKey(templates, ds))
+	POST(keysPrefix+"/delete/:id", deleteKey(templates, ds))
+
+	GET("/export", export(templates, ds))
+	GET("/tags", tags(templates, ds))
 }
 
 type RequestLogger struct {
