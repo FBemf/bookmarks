@@ -158,7 +158,7 @@ func (ds *Datastore) CreateSession(user int64) (http.Cookie, error) {
 	}, nil
 }
 
-func (ds *Datastore) CleanUpCookies(ttl time.Duration) error {
+func (ds *Datastore) CleanUpSessions(ttl time.Duration) error {
 	oldestAllowed := time.Now().UTC().Add(-ttl)
 	_, err := ds.db.Exec(`delete from session where timestamp < ?`, oldestAllowed)
 	return err

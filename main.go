@@ -90,7 +90,7 @@ func serve(config serveConfig) {
 	go func() {
 		// clean up cookies every hour
 		for {
-			ds.CleanUpCookies(time.Hour * time.Duration(config.sessionAgeHours))
+			ds.CleanUpSessions(time.Hour * time.Duration(config.sessionAgeHours))
 			time.Sleep(time.Hour)
 		}
 	}()
