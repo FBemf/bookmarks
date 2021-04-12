@@ -3,6 +3,7 @@
  */
 :root {
     --body-colour: #222;
+    --heading-colour: #333;
     --accent-colour: rgb(214, 95, 155);
 }
 
@@ -21,6 +22,7 @@ html {
 
 h1, h2, h3 {
     line-height: 1.2;
+    color: var(--heading-colour);
     font-family: sans-serif;
 }
 
