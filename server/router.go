@@ -13,6 +13,7 @@ import (
 const bookmarksPrefix = "/bookmarks"
 const keysPrefix = "/keys"
 const apiPrefix = "/api"
+const loginPrefix = "/login"
 
 type sessionMiddleware = func(sessionHandler) httprouter.Handle
 type sessionHandler = func(datastore.Session, http.ResponseWriter, *http.Request, httprouter.Params)
@@ -20,12 +21,13 @@ type sessionHandler = func(datastore.Session, http.ResponseWriter, *http.Request
 func MakeRouter(templates *templates.Templates, static fs.FS, ds *datastore.Datastore) http.Handler {
 	router := httprouter.New()
 	router.Handler(http.MethodGet, "/", http.RedirectHandler("/bookmarks/", http.StatusFound))
-	router.GET("/login", loginPage(templates, ds))
-	router.POST("/login", doLogin(templates, ds))
+	router.GET(loginPrefix, loginPage(templates, ds))
+	router.POST(loginPrefix, doLogin(templates, ds))
 	router.GET("/logout", logout)
 
-	router.OPTIONS(apiPrefix+"/newbookmark", corsOptions())
+	router.OPTIONS(apiPrefix+"/newbookmark", corsOptions([]string{http.MethodPost, http.MethodOptions}))
 	router.POST(apiPrefix+"/newbookmark", apiNewBookmark(ds))
+
 	router.GET(apiPrefix+"/export", apiExport(ds))
 
 	router.ServeFiles("/static/*filepath", http.FS(static))
@@ -36,7 +38,7 @@ func MakeRouter(templates *templates.Templates, static fs.FS, ds *datastore.Data
 
 func routeProtected(router *httprouter.Router, templates *templates.Templates, ds *datastore.Datastore) {
 	// Note: because we use same-site=lax cookies, all dangerous endpoints have to be POSTs
-	auth := auth(ds, "/login")
+	auth := auth(ds, loginPrefix)
 	GET := func(path string, handler sessionHandler) {
 		router.GET(path, auth(handler))
 	}

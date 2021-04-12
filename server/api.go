@@ -85,18 +85,25 @@ type apiNewBookmarkData struct {
 	Tags        []string `json:"tags"`
 }
 
-func corsOptions() httprouter.Handle {
+func corsOptions(allow []string) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		resp.Header().Set("Access-Control-Allow-Origin", "*")
-		resp.Header().Set("Access-Control-Allow-Headers", "Authorization")
+		allowString := strings.Join(allow, ", ")
+		header := resp.Header()
+		header.Set("Access-Control-Allow-Origin", "*")
+		header.Set("Access-Control-Allow-Headers", "Authorization")
+		header.Set("Access-Control-Allow-Methods", allowString)
+		header.Set("Allow", allowString)
+		resp.WriteHeader(http.StatusNoContent)
 	}
 }
 
 func apiNewBookmark(ds *datastore.Datastore) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		resp.Header().Set("Access-Control-Allow-Origin", "*")
-		resp.Header().Set("Access-Control-Allow-Headers", "Authorization")
-		resp.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		header := resp.Header()
+		header.Set("Access-Control-Allow-Origin", "*")
+		header.Set("Access-Control-Allow-Headers", "Authorization")
+		header.Set("Access-Control-Allow-Methods", req.Method)
+		header.Set("Content-Type", "application/json; charset=UTF-8")
 		authHeader := req.Header.Get("Authorization")
 		if !strings.HasPrefix(authHeader, tokenType) {
 			ErrorPage(resp, http.StatusBadRequest)

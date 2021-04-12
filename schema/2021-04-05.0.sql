@@ -3,7 +3,7 @@
 CREATE TABLE bookmark (
     id          INTEGER PRIMARY KEY,
     name        TEXT,
-    url         TEXT,
+    url         TEXT UNIQUE,
     date        DATETIME,
     description  TEXT
 );
