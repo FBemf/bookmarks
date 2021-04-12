@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const API_KEY_SIZE = 32
+const apiKeySize = 32
 
 type ApiKey struct {
 	Id   int64

@@ -10,40 +10,14 @@ import (
 	"time"
 )
 
-const AUTH_COOKIE_NAME = "bookmark_auth"
-const AUTH_COOKIE_SIZE = 32
-const AUTH_COOKIE_TTL = 30 * 24 * 60 * 60 * time.Second // 30 days in seconds
-const SALT_SIZE = 16
-
-func (ds *Datastore) GetSession(cookie string) (string, bool, error) {
-	var user int64
-	var timestamp time.Time
-	err := ds.db.QueryRow(`select user, timestamp from session where cookie = ?`, cookie).Scan(&user, &timestamp)
-	if err == sql.ErrNoRows {
-		return "", false, nil
-	}
-	if err != nil {
-		return "", false, fmt.Errorf("getting session: %w", err)
-	}
-
-	if time.Now().UTC().Sub(timestamp) > AUTH_COOKIE_TTL {
-		_, err := ds.db.Exec(`delete from session where cookie = ?`, cookie)
-		if err != nil {
-			return "", false, fmt.Errorf("deleting expired cookie: %w", err)
-		}
-		return "", false, fmt.Errorf("expired cookie")
-	}
-
-	var username string
-	err = ds.db.QueryRow(`select username from user where id = ?`, user).Scan(&username)
-	if err != nil {
-		return "", false, fmt.Errorf("getting username: %w", err)
-	}
-	return username, true, nil
-}
+const AuthCookieName = "bookmark_auth"
+const AuthCookieTtl = 30 * 24 * 60 * 60 * time.Second // 30 days in seconds
+const authCookieSize = 32
+const saltSize = 16
+const csrfTokenSize = 32
 
 func (ds *Datastore) AddUser(username, password string) error {
-	salt, err := createSalt()
+	salt, err := randomHex(saltSize)
 	if err != nil {
 		return fmt.Errorf("creating salt: %w", err)
 	}
@@ -56,7 +30,7 @@ func (ds *Datastore) AddUser(username, password string) error {
 }
 
 func (ds *Datastore) ChangeUserPassword(username, password string) error {
-	salt, err := createSalt()
+	salt, err := randomHex(saltSize)
 	if err != nil {
 		return fmt.Errorf("creating salt: %w", err)
 	}
@@ -68,14 +42,14 @@ func (ds *Datastore) ChangeUserPassword(username, password string) error {
 	return nil
 }
 
-func createSalt() (string, error) {
-	saltBytes := make([]byte, SALT_SIZE)
-	_, err := rand.Read(saltBytes)
-	salt := hex.EncodeToString(saltBytes)
+func randomHex(bytes int) (string, error) {
+	outputBytes := make([]byte, bytes)
+	_, err := rand.Read(outputBytes)
 	if err != nil {
-		return "", fmt.Errorf("generating salt: %w", err)
+		return "", fmt.Errorf("generating random bytes: %w", err)
 	}
-	return salt, nil
+	output := hex.EncodeToString(outputBytes)
+	return output, nil
 }
 
 func hashPassword(password, salt string) string {
@@ -139,23 +113,59 @@ func (ds *Datastore) RemoveUser(username string) error {
 }
 
 func (ds *Datastore) CreateSession(user int64) (http.Cookie, error) {
-	cookieBytes := make([]byte, AUTH_COOKIE_SIZE)
-	_, err := rand.Read(cookieBytes)
+	cookie, err := randomHex(authCookieSize)
 	if err != nil {
 		return http.Cookie{}, fmt.Errorf("generating cookie: %w", err)
 	}
-	cookie := hex.EncodeToString(cookieBytes)
+	csrf, err := randomHex(csrfTokenSize)
+	if err != nil {
+		return http.Cookie{}, fmt.Errorf("generating csrf token: %w", err)
+	}
 	timestamp := time.Now().UTC()
-	_, err = ds.db.Exec(`insert into session (user, timestamp, cookie) values (?, ?, ?)`, user, timestamp, cookie)
+	_, err = ds.db.Exec(`insert into session (user, timestamp, cookie, csrf) values (?, ?, ?, ?)`, user, timestamp, cookie, csrf)
 	if err != nil {
 		return http.Cookie{}, fmt.Errorf("inserting session: %w", err)
 	}
 	return http.Cookie{
-		Name:     AUTH_COOKIE_NAME,
+		Name:     AuthCookieName,
 		Value:    cookie,
 		SameSite: http.SameSiteLaxMode,
 		Secure:   true,
 	}, nil
+}
+
+type Session struct {
+	UserId    int64
+	Username  string
+	CsrfToken string
+}
+
+func (ds *Datastore) GetSession(cookie string) (Session, bool, error) {
+	var user int64
+	var timestamp time.Time
+	var csrf string
+	err := ds.db.QueryRow(`select user, timestamp, csrf from session where cookie = ?`, cookie).Scan(&user, &timestamp, &csrf)
+	if err == sql.ErrNoRows {
+		return Session{}, false, nil
+	}
+	if err != nil {
+		return Session{}, false, fmt.Errorf("getting session: %w", err)
+	}
+
+	if time.Now().UTC().Sub(timestamp) > AuthCookieTtl {
+		_, err := ds.db.Exec(`delete from session where cookie = ?`, cookie)
+		if err != nil {
+			return Session{}, false, fmt.Errorf("deleting expired cookie: %w", err)
+		}
+		return Session{}, false, fmt.Errorf("expired cookie")
+	}
+
+	var username string
+	err = ds.db.QueryRow(`select username from user where id = ?`, user).Scan(&username)
+	if err != nil {
+		return Session{}, false, fmt.Errorf("getting username: %w", err)
+	}
+	return Session{user, username, csrf}, true, nil
 }
 
 func (ds *Datastore) CleanUpSessions(ttl time.Duration) error {

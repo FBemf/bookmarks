@@ -1,11 +1,14 @@
 package templates
 
 import (
+	"fmt"
 	"html/template"
 	"io/fs"
 	"local/bookmarks/datastore"
 	"local/bookmarks/urlparams"
 )
+
+const CsrfTokenName = "csrf-token"
 
 type Templates struct {
 	Login        *template.Template
@@ -28,6 +31,7 @@ func functions() *template.Template {
 			"paramClearTags":    urlparams.ClearTags,
 			"paramAddTag":       urlparams.AddTag,
 			"paramQueryString":  urlparams.SearchParams.QueryString,
+			"csrfField":         csrfField,
 		})
 }
 
@@ -61,4 +65,8 @@ func bookmarkAndParams(bookmark datastore.Bookmark, params urlparams.SearchParam
 
 func emptyBookmark() datastore.Bookmark {
 	return datastore.Bookmark{}
+}
+
+func csrfField(token string) template.HTML {
+	return template.HTML(fmt.Sprintf("<input name=\"%s\" type=hidden value=\"%s\">", CsrfTokenName, token))
 }

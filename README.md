@@ -15,6 +15,7 @@ Adding users and changing their passwords is done with the `user` command.
 - Tag your bookmarks
 - Search, filter by tags, or do both at the same time
 - Includes a javascript bookmarklet for easy bookmarking (found on the API keys page)
+- Compiles to just one binary, including sqlite driver
 
 ## API
 

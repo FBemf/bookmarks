@@ -9,8 +9,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func tags(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
-	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+func tags(templates *templates.Templates, ds *datastore.Datastore) sessionHandler {
+	return func(session datastore.Session, resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
 		tags, err := ds.GetTags()

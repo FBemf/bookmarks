@@ -20,6 +20,7 @@
         <form method="POST" action="/bookmarks/edit/{{ .Bookmark.Id }}{{ .SearchParams | paramQueryString }}">
             {{ template "edit" .Bookmark }}
             <input class="editform__left-button" type="submit" value="Update">
+            {{ csrfField .CsrfToken }}
         </form>
         <div class="editform__right-button" data-controller="are-you-sure">
             <button data-are-you-sure-target="initial" data-action="click->are-you-sure#prime">Delete</button>
@@ -29,6 +30,7 @@
                 Are you sure?&nbsp;
                 <button>Delete</button></a>&nbsp;
                 <button type="button" data-action="click->are-you-sure#cancel">Cancel</button>
+                {{ csrfField .CsrfToken }}
             </form>
         </div>
     </div>

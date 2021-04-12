@@ -81,6 +81,7 @@
                 <form method="POST" action="/bookmarks/create{{ $searchParams | paramQueryString }}">
                     {{ template "edit" emptyBookmark }}
                     <input class="editform__right-button" type="submit" value="Bookmark">
+                    {{ csrfField .CsrfToken }}
                 </form>
             </div>
         </div>

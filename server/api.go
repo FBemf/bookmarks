@@ -15,8 +15,13 @@ import (
 
 const tokenType = "Bearer "
 
-func keys(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
-	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+type keysData struct {
+	Keys      []datastore.ApiKey
+	CsrfToken string
+}
+
+func keys(templates *templates.Templates, ds *datastore.Datastore) sessionHandler {
+	return func(session datastore.Session, resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		keys, err := ds.ListKeys()
 		if err != nil {
@@ -25,7 +30,7 @@ func keys(templates *templates.Templates, ds *datastore.Datastore) httprouter.Ha
 			return
 		}
 
-		err = templates.ApiKeys.ExecuteTemplate(resp, "base", keys)
+		err = templates.ApiKeys.ExecuteTemplate(resp, "base", keysData{keys, session.CsrfToken})
 		if err != nil {
 			ErrorPage(resp, http.StatusInternalServerError)
 			log.Printf("writing template: %v", err)
@@ -34,8 +39,8 @@ func keys(templates *templates.Templates, ds *datastore.Datastore) httprouter.Ha
 	}
 }
 
-func createKey(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
-	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+func createKey(templates *templates.Templates, ds *datastore.Datastore) sessionHandler {
+	return func(session datastore.Session, resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		req.ParseForm()
 		name := req.Form.Get("name")
 		if name == "" {
@@ -53,8 +58,8 @@ func createKey(templates *templates.Templates, ds *datastore.Datastore) httprout
 	}
 }
 
-func deleteKey(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
-	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+func deleteKey(templates *templates.Templates, ds *datastore.Datastore) sessionHandler {
+	return func(session datastore.Session, resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		key := params[0].Value
 		id, err := strconv.Atoi(key)
 		if err != nil {

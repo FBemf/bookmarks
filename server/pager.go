@@ -4,8 +4,8 @@ import (
 	"strconv"
 )
 
-const PAGE_SIZE = 20
-const PAGER_SIDE_SIZE = 5
+const pageSize = 20
+const pagerSideSize = 5
 
 type pager struct {
 	First   string

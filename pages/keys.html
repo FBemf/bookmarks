@@ -9,6 +9,7 @@
 {{ define "body" }}
 <h1>API Keys</h1>
 {{ template "nav" . }}
+{{ $csrfToken := .CsrfToken }}
 
 <hr>
 
@@ -17,9 +18,10 @@
         <form method="POST" action="/keys/create">
             <input type="text" name="name" placeholder="Key name" value="" autocomplete="off">
             <input type="submit" value="Create new API key">
+            {{ csrfField $csrfToken }}
         </form>
     </div>
-    {{ range . }}
+    {{ range .Keys }}
     <div class="list-entry">
         <div data-controller="bookmarklet-copier">
             <div data-controller="text-copier">
@@ -37,12 +39,12 @@
                             Are you sure?&nbsp;
                             <button>Revoke</button></a>&nbsp;
                             <button type="button" data-action="click->are-you-sure#cancel">Cancel</button>
+                            {{ csrfField $csrfToken }}
                         </form>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
     </div>
     {{ end }}
 </turbo-frame>

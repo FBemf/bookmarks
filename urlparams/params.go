@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	REVERSE_ORDER = "reverse"
-	NORMAL_ORDER  = "normal"
+	ReverseOrder = "reverse"
+	NormalOrder  = "normal"
 )
 
 type SearchParams struct {
@@ -34,7 +34,7 @@ func SetPage(page string, p SearchParams) (SearchParams, error) {
 
 func SetOrder(order string, p SearchParams) (SearchParams, error) {
 	p.Order = order
-	if p.Order != NORMAL_ORDER && order != REVERSE_ORDER {
+	if p.Order != NormalOrder && order != ReverseOrder {
 		return p, fmt.Errorf("illegal order %s", p.Order)
 	}
 	return p, nil
@@ -65,7 +65,7 @@ func (p SearchParams) QueryString() template.URL {
 	if p.Page != 1 {
 		params = append(params, "page="+strconv.Itoa(p.Page))
 	}
-	if p.Order != NORMAL_ORDER {
+	if p.Order != NormalOrder {
 		params = append(params, "order="+p.Order)
 	}
 	if p.Search != "" {
@@ -84,7 +84,7 @@ func (p SearchParams) QueryString() template.URL {
 func DefaultUrlParams() SearchParams {
 	return SearchParams{
 		Page:       1,
-		Order:      NORMAL_ORDER,
+		Order:      NormalOrder,
 		Search:     "",
 		SearchTags: []string{},
 	}
@@ -106,7 +106,7 @@ func GetUrlParams(req *http.Request) (SearchParams, error) {
 	}
 	order := req.Form.Get("order")
 	if order != "" {
-		if order != NORMAL_ORDER && order != REVERSE_ORDER {
+		if order != NormalOrder && order != ReverseOrder {
 			return SearchParams{}, fmt.Errorf("invalid order %s", order)
 		}
 		params.Order = order

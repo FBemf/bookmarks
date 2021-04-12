@@ -73,28 +73,28 @@ func doLogin(templates *templates.Templates, ds *datastore.Datastore) httprouter
 }
 
 func logout(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
-	http.SetCookie(resp, &http.Cookie{Name: datastore.AUTH_COOKIE_NAME})
+	http.SetCookie(resp, &http.Cookie{Name: datastore.AuthCookieName})
 	http.Redirect(resp, req, "/", http.StatusSeeOther)
 }
 
-func authenticateSession(ds *datastore.Datastore, req *http.Request) (string, bool, error) {
+func authenticateSession(ds *datastore.Datastore, req *http.Request) (datastore.Session, bool, error) {
 	cookies := req.Cookies()
 	var sessionCookie string
 	for _, cookie := range cookies {
-		if cookie.Name == datastore.AUTH_COOKIE_NAME {
+		if cookie.Name == datastore.AuthCookieName {
 			sessionCookie = cookie.Value
 			break
 		}
 	}
 	if sessionCookie == "" {
-		return "", false, nil
+		return datastore.Session{}, false, nil
 	}
-	username, valid, err := ds.GetSession(sessionCookie)
+	session, valid, err := ds.GetSession(sessionCookie)
 	if err != nil {
-		return "", false, fmt.Errorf("finding session: %w", err)
+		return datastore.Session{}, false, fmt.Errorf("finding session: %w", err)
 	}
 	if !valid {
-		return "", false, nil
+		return datastore.Session{}, false, nil
 	}
-	return username, true, nil
+	return session, true, nil
 }
