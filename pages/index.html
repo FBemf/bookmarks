@@ -19,6 +19,7 @@
     <form action='/bookmarks{{ $searchParams |  paramSetSearch "" | paramClearTags | paramQueryString }}' method="GET">
         <div data-controller="bookmark-tagger">
             <div class="searchbar">
+                <input type="submit" value="Go!">
                 <div>
                     <input type="text" name="search" placeholder="Search…" value="{{ $searchParams.Search }}"
                         autocomplete="off">
@@ -26,7 +27,6 @@
                         type="text" placeholder="Tag name" value="" autocomplete="off">
                     <button type="button" data-action="click->bookmark-tagger#addSearchTag">Add tag</button>
                 </div>
-                <input type="submit" value="Go!">
             </div>
             <div class="taglist" data-bookmark-tagger-target="tagList">
                 {{ range $searchParams.SearchTags }}

@@ -51,6 +51,12 @@ a {
     font-size: 1em;
 }
 
+.navbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
 .list-entry {
     border-radius: 20px;
     background-color: rgb(250, 250, 250);
