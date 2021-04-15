@@ -25,8 +25,8 @@ func MakeRouter(templates *templates.Templates, static fs.FS, ds *datastore.Data
 	router.POST(loginPrefix, doLogin(templates, ds))
 	router.GET("/logout", logout)
 
-	router.OPTIONS(apiPrefix+"/newbookmark", corsOptions([]string{http.MethodPost, http.MethodOptions}))
-	router.POST(apiPrefix+"/newbookmark", apiNewBookmark(ds))
+	router.OPTIONS(apiPrefix+"/bookmark", corsOptions([]string{http.MethodPost, http.MethodOptions}))
+	router.POST(apiPrefix+"/bookmark", apiNewBookmark(ds))
 
 	router.GET(apiPrefix+"/export", apiExport(ds))
 
