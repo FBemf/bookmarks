@@ -20,6 +20,7 @@ type Templates struct {
 	ViewBookmark *template.Template
 }
 
+// Initializes a new template with all the functions we make available to templates
 func functions() *template.Template {
 	return template.New("").
 		Funcs(template.FuncMap{
@@ -59,6 +60,7 @@ type bookmarkAndParamsData struct {
 	SearchParams urlparams.SearchParams
 }
 
+// Bundles a bookmark together with search parameters, as an argument to use in a template
 func bookmarkAndParams(bookmark datastore.Bookmark, params urlparams.SearchParams) bookmarkAndParamsData {
 	return bookmarkAndParamsData{bookmark, params}
 }

@@ -60,6 +60,7 @@ func AddTag(tag string, p SearchParams) SearchParams {
 	return p
 }
 
+// output query parameters in the form of a string that can be appended to a URL
 func (p SearchParams) QueryString() template.URL {
 	params := make([]string, 0)
 	if p.Page != 1 {
@@ -90,7 +91,8 @@ func DefaultUrlParams() SearchParams {
 	}
 }
 
-func GetUrlParams(req *http.Request) (SearchParams, error) {
+// Read query parameters out of request URL
+func GetQueryParams(req *http.Request) (SearchParams, error) {
 	params := DefaultUrlParams()
 
 	err := req.ParseForm()

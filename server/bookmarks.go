@@ -30,7 +30,7 @@ type bookmarkData struct {
 func index(templates *templates.Templates, ds *datastore.Datastore) sessionHandler {
 	return func(session datastore.Session, resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
-		urlParams, err := urlparams.GetUrlParams(req)
+		urlParams, err := urlparams.GetQueryParams(req)
 		if err != nil {
 			ErrorPage(resp, http.StatusBadRequest)
 			return
@@ -72,7 +72,7 @@ func index(templates *templates.Templates, ds *datastore.Datastore) sessionHandl
 func viewBookmark(templates *templates.Templates, ds *datastore.Datastore) sessionHandler {
 	return func(session datastore.Session, resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
-		urlParams, err := urlparams.GetUrlParams(req)
+		urlParams, err := urlparams.GetQueryParams(req)
 		if err != nil {
 			ErrorPage(resp, http.StatusBadRequest)
 			return
@@ -101,7 +101,7 @@ func viewBookmark(templates *templates.Templates, ds *datastore.Datastore) sessi
 func editBookmark(templates *templates.Templates, ds *datastore.Datastore) sessionHandler {
 	return func(session datastore.Session, resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
-		urlParams, err := urlparams.GetUrlParams(req)
+		urlParams, err := urlparams.GetQueryParams(req)
 		if err != nil {
 			ErrorPage(resp, http.StatusBadRequest)
 			return

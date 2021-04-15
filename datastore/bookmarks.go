@@ -41,7 +41,7 @@ func NewQueryInfo(pageSize int64) QueryInfo {
 }
 
 func Connect(file string) (Datastore, error) {
-	address := fmt.Sprintf("file:%s?_foreign_keys=1", file)
+	address := fmt.Sprintf("file:%s?_foreign_keys=ON&_journal_mode=WAL&_busy_timeout=30000", file)
 	db, err := sql.Open("sqlite3", address)
 	if err != nil {
 		return Datastore{}, fmt.Errorf("unable to open sqlite3 connection: %w", err)
@@ -268,6 +268,8 @@ func (ds *Datastore) Export() ([]byte, error) {
 	return data, nil
 }
 
+// Quotes an array of strings so that they're sql-safe.
+// ie. {"string1", "string2", "apo'strophe"} -> "'string1', 'string2', 'apo''strophe'"
 func quoteStrings(value []string) string {
 	escaped := make([]string, 0, len(value))
 	for _, s := range value {
@@ -277,6 +279,7 @@ func quoteStrings(value []string) string {
 	return joined
 }
 
+// Delete tags with no corresponding bookmarks
 func (ds *Datastore) deleteDanglingTags() error {
 	_, err := ds.db.Exec(`delete from tag where (select count(*) from tag_bookmark where tag = id) = 0`)
 	return err

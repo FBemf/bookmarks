@@ -33,15 +33,16 @@ func MakeRouter(templates *templates.Templates, static fs.FS, ds *datastore.Data
 	router.ServeFiles("/static/*filepath", http.FS(static))
 
 	routeProtected(router, templates, ds)
+
 	return RequestLogger{router}
 }
 
 func routeProtected(router *httprouter.Router, templates *templates.Templates, ds *datastore.Datastore) {
-	// Note: because we use same-site=lax cookies, all dangerous endpoints have to be POSTs
 	auth := auth(ds, loginPrefix)
 	GET := func(path string, handler sessionHandler) {
 		router.GET(path, auth(handler))
 	}
+	// Note: because we use same-site=lax cookies, all dangerous endpoints have to be POSTs
 	POST := func(path string, handler sessionHandler) {
 		router.POST(path, auth(csrf(handler)))
 	}
