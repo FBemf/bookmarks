@@ -17,7 +17,7 @@ type ApiKey struct {
 }
 
 func (ds *Datastore) CreateKey(name string) error {
-	keyBytes := make([]byte, 32)
+	keyBytes := make([]byte, apiKeySize)
 	_, err := rand.Read(keyBytes)
 	if err != nil {
 		return fmt.Errorf("generating cookie: %w", err)
