@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"golang.org/x/crypto/scrypt"
+	"golang.org/x/crypto/argon2"
 )
 
 const AuthCookieName = "bookmark_auth"
@@ -23,7 +23,7 @@ func (ds *Datastore) AddUser(username, password string) error {
 		return fmt.Errorf("creating salt: %w", err)
 	}
 	salt := base64.URLEncoding.EncodeToString(saltBytes)
-	hash, err := hashPassword(password, saltBytes)
+	hash := hashPassword(password, saltBytes)
 	if err != nil {
 		return fmt.Errorf("hashing password: %w", err)
 	}
@@ -40,7 +40,7 @@ func (ds *Datastore) ChangeUserPassword(username, password string) error {
 		return fmt.Errorf("creating salt: %w", err)
 	}
 	salt := base64.URLEncoding.EncodeToString(saltBytes)
-	hash, err := hashPassword(password, saltBytes)
+	hash := hashPassword(password, saltBytes)
 	if err != nil {
 		return fmt.Errorf("hashing password: %w", err)
 	}
@@ -60,13 +60,10 @@ func randomBytes(bytes int) ([]byte, error) {
 	return output, nil
 }
 
-func hashPassword(password string, salt []byte) (string, error) {
-	dk, err := scrypt.Key([]byte(password), salt, 1<<15, 8, 1, 32)
-	if err != nil {
-		return "", err
-	}
+func hashPassword(password string, salt []byte) string {
+	dk := argon2.Key([]byte(password), salt, 3, 32*1024, 4, 32)
 	hash := base64.URLEncoding.EncodeToString(dk)
-	return hash, nil
+	return hash
 }
 
 func (ds *Datastore) ListUsers() ([]string, error) {
@@ -112,7 +109,7 @@ func (ds *Datastore) AuthenticateUser(username, password string) (int64, bool, e
 	if err != nil {
 		return 0, false, fmt.Errorf("decoding salt: %w", err)
 	}
-	new_hash, err := hashPassword(password, saltBytes)
+	new_hash := hashPassword(password, saltBytes)
 	if err != nil {
 		return 0, false, fmt.Errorf("hashing password: %w", err)
 	}
