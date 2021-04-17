@@ -9,6 +9,7 @@ I also made it to try out [hotwire][hotwire], which I found very pleasant to use
 As a web app, it's mostly self-explanatory.
 Serve it with the `serve` command.
 Adding users and changing their passwords is done with the `user` command.
+Best practice, though, is to do that with `./set_password.sh <USER>`, which interactively prompts for the password so that it stays out of the shell history.
 
 ## Features
 
