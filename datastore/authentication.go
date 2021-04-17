@@ -1,27 +1,32 @@
 package datastore
 
 import (
-	"crypto"
 	"crypto/rand"
 	"database/sql"
-	"encoding/hex"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"time"
+
+	"golang.org/x/crypto/scrypt"
 )
 
 const AuthCookieName = "bookmark_auth"
-const AuthCookieTtl = 30 * 24 * 60 * 60 * time.Second // 30 days in seconds
+const AuthCookieTtl = 30 * 24 * time.Hour // 30 days
 const authCookieSize = 32
 const saltSize = 16
 const csrfTokenSize = 32
 
 func (ds *Datastore) AddUser(username, password string) error {
-	salt, err := randomHex(saltSize)
+	saltBytes, err := randomBytes(saltSize)
 	if err != nil {
 		return fmt.Errorf("creating salt: %w", err)
 	}
-	hash := hashPassword(password, salt)
+	salt := base64.URLEncoding.EncodeToString(saltBytes)
+	hash, err := hashPassword(password, saltBytes)
+	if err != nil {
+		return fmt.Errorf("hashing password: %w", err)
+	}
 	_, err = ds.db.Exec(`insert into user (username, password_hash, salt) values (?, ?, ?)`, username, hash, salt)
 	if err != nil {
 		return fmt.Errorf("inserting new user: %w", err)
@@ -30,11 +35,15 @@ func (ds *Datastore) AddUser(username, password string) error {
 }
 
 func (ds *Datastore) ChangeUserPassword(username, password string) error {
-	salt, err := randomHex(saltSize)
+	saltBytes, err := randomBytes(saltSize)
 	if err != nil {
 		return fmt.Errorf("creating salt: %w", err)
 	}
-	hash := hashPassword(password, salt)
+	salt := base64.URLEncoding.EncodeToString(saltBytes)
+	hash, err := hashPassword(password, saltBytes)
+	if err != nil {
+		return fmt.Errorf("hashing password: %w", err)
+	}
 	_, err = ds.db.Exec(`update user set password_hash = ?, salt = ? where username = ?`, hash, salt, username)
 	if err != nil {
 		return fmt.Errorf("updating user: %w", err)
@@ -42,21 +51,22 @@ func (ds *Datastore) ChangeUserPassword(username, password string) error {
 	return nil
 }
 
-func randomHex(bytes int) (string, error) {
-	outputBytes := make([]byte, bytes)
-	_, err := rand.Read(outputBytes)
+func randomBytes(bytes int) ([]byte, error) {
+	output := make([]byte, bytes)
+	_, err := rand.Read(output)
 	if err != nil {
-		return "", fmt.Errorf("generating random bytes: %w", err)
+		return nil, fmt.Errorf("generating random bytes: %w", err)
 	}
-	output := hex.EncodeToString(outputBytes)
 	return output, nil
 }
 
-func hashPassword(password, salt string) string {
-	hasher := crypto.SHA512.New()
-	hashBytes := hasher.Sum([]byte(password + salt))
-	hash := hex.EncodeToString(hashBytes)
-	return hash
+func hashPassword(password string, salt []byte) (string, error) {
+	dk, err := scrypt.Key([]byte(password), salt, 1<<15, 8, 1, 32)
+	if err != nil {
+		return "", err
+	}
+	hash := base64.URLEncoding.EncodeToString(dk)
+	return hash, nil
 }
 
 func (ds *Datastore) ListUsers() ([]string, error) {
@@ -98,7 +108,14 @@ func (ds *Datastore) AuthenticateUser(username, password string) (int64, bool, e
 		return 0, false, fmt.Errorf("finding user: %w", err)
 	}
 
-	new_hash := hashPassword(password, salt)
+	saltBytes, err := base64.URLEncoding.DecodeString(salt)
+	if err != nil {
+		return 0, false, fmt.Errorf("decoding salt: %w", err)
+	}
+	new_hash, err := hashPassword(password, saltBytes)
+	if err != nil {
+		return 0, false, fmt.Errorf("hashing password: %w", err)
+	}
 
 	if stored_hash == new_hash {
 		return userId, true, nil
@@ -113,22 +130,26 @@ func (ds *Datastore) RemoveUser(username string) error {
 }
 
 func (ds *Datastore) CreateSession(user int64) (http.Cookie, error) {
-	cookie, err := randomHex(authCookieSize)
+	cookieBytes, err := randomBytes(authCookieSize)
 	if err != nil {
 		return http.Cookie{}, fmt.Errorf("generating cookie: %w", err)
 	}
-	csrf, err := randomHex(csrfTokenSize)
+	cookie := base64.URLEncoding.EncodeToString(cookieBytes)
+	csrfBytes, err := randomBytes(csrfTokenSize)
 	if err != nil {
 		return http.Cookie{}, fmt.Errorf("generating csrf token: %w", err)
 	}
+	csrf := base64.URLEncoding.EncodeToString(csrfBytes)
 	timestamp := time.Now().UTC()
-	_, err = ds.db.Exec(`insert into session (user, timestamp, cookie, csrf) values (?, ?, ?, ?)`, user, timestamp, cookie, csrf)
+	_, err = ds.db.Exec(`insert into session (user, timestamp, cookie, csrf) values (?, ?, ?, ?)`,
+		user, timestamp, cookie, csrf)
 	if err != nil {
 		return http.Cookie{}, fmt.Errorf("inserting session: %w", err)
 	}
 	return http.Cookie{
 		Name:     AuthCookieName,
 		Value:    cookie,
+		Expires:  timestamp.Add(AuthCookieTtl),
 		SameSite: http.SameSiteLaxMode,
 		Secure:   true,
 	}, nil
