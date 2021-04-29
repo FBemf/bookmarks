@@ -14,7 +14,7 @@
 
 <hr>
 
-<turbo-frame id="list">
+<turbo-frame id="list" target="_top">
     <h2>Search</h2>
     <form action='/bookmarks{{ $searchParams |  paramSetSearch "" | paramClearTags | paramQueryString }}' method="GET">
         <div data-controller="bookmark-tagger">
