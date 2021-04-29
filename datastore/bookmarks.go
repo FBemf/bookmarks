@@ -157,17 +157,11 @@ func (ds *Datastore) GetBookmarks(info QueryInfo) ([]Bookmark, error) {
 		if info.Search == "" {
 			query := fmt.Sprintf(`select * from bookmark order by date %s limit ? offset ?`, order)
 			rows, err = ds.db.Query(query, info.Number, info.Offset)
-			if err != nil {
-				return result, fmt.Errorf("fetching bookmarks: %w", err)
-			}
 		} else {
 			query := fmt.Sprintf(`select * from bookmark
 				where bookmark.name like $1 or url like $1 or description like $1
 				order by date %s limit $2 offset $3`, order)
 			rows, err = ds.db.Query(query, "%"+info.Search+"%", info.Number, info.Offset)
-			if err != nil {
-				return result, fmt.Errorf("fetching bookmarks: %w", err)
-			}
 		}
 	} else {
 		query := fmt.Sprintf(`select bookmark.id, bookmark.name, url, date, description from bookmark
@@ -183,9 +177,12 @@ func (ds *Datastore) GetBookmarks(info QueryInfo) ([]Bookmark, error) {
 			quoteStrings(tags), len(tags), order)
 		pattern := "%" + info.Search + "%"
 		rows, err = ds.db.Query(query, pattern, info.Number, info.Offset)
-		if err != nil {
-			return result, fmt.Errorf("fetching bookmarks: %w", err)
-		}
+	}
+	if err == sql.ErrNoRows {
+		return []Bookmark{}, nil
+	}
+	if err != nil {
+		return result, fmt.Errorf("fetching bookmarks: %w", err)
 	}
 	for rows.Next() {
 		var b Bookmark
@@ -205,31 +202,18 @@ func (ds *Datastore) GetBookmarks(info QueryInfo) ([]Bookmark, error) {
 }
 
 func (ds *Datastore) GetNumBookmarks(info QueryInfo) (int64, error) {
-	var order string
-	if info.Reverse {
-		order = "asc"
-	} else {
-		order = "desc"
-	}
 	tags := stringsToLower(info.Tags)
 
 	var count int64
 	var err error
 	if len(tags) == 0 {
 		if info.Search == "" {
-			query := fmt.Sprintf(`select count(*) from bookmark order by date %s limit ? offset ?`, order)
-			err = ds.db.QueryRow(query, info.Number, info.Offset).Scan(&count)
-			if err != nil {
-				return 0, fmt.Errorf("fetching bookmarks: %w", err)
-			}
+			query := `select count(*) from bookmark`
+			err = ds.db.QueryRow(query).Scan(&count)
 		} else {
-			query := fmt.Sprintf(`select count(*) from bookmark
-				where bookmark.name like $1 or url like $1 or description like $1
-				order by date %s limit $2 offset $3`, order)
-			err = ds.db.QueryRow(query, "%"+info.Search+"%", info.Number, info.Offset).Scan(&count)
-			if err != nil {
-				return 0, fmt.Errorf("fetching bookmarks: %w", err)
-			}
+			query := `select count(*) from bookmark
+				where bookmark.name like $1 or url like $1 or description like $1`
+			err = ds.db.QueryRow(query, "%"+info.Search+"%").Scan(&count)
 		}
 	} else {
 		query := fmt.Sprintf(`select count(*) from bookmark
@@ -240,14 +224,16 @@ func (ds *Datastore) GetNumBookmarks(info QueryInfo) (int64, error) {
 				group by bookmark
 				having count(distinct tag.id) = %d
 			) as t on bookmark.id = t.bookmark
-			where bookmark.name like $1 or url like $1 or description like $1
-			order by date %s limit $2 offset $3`,
-			quoteStrings(tags), len(tags), order)
+			where bookmark.name like $1 or url like $1 or description like $1`,
+			quoteStrings(tags), len(tags))
 		pattern := "%" + info.Search + "%"
-		err = ds.db.QueryRow(query, pattern, info.Number, info.Offset).Scan(&count)
-		if err != nil {
-			return 0, fmt.Errorf("fetching bookmarks: %w", err)
-		}
+		err = ds.db.QueryRow(query, pattern).Scan(&count)
+	}
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, fmt.Errorf("fetching bookmarks: %w", err)
 	}
 	return count, nil
 }
