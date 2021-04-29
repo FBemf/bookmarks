@@ -13,39 +13,36 @@
 
 <hr>
 
-<turbo-frame id="keys">
-    <div data-controller="new-dialogue">
-        <form method="POST" action="/keys/create">
-            <input type="text" name="name" placeholder="Key name" value="" autocomplete="off">
-            <input type="submit" value="Create new API key">
-            {{ csrfField $csrfToken }}
-        </form>
-    </div>
-    {{ range .Keys }}
-    <div class="list-entry">
-        <div data-controller="bookmarklet-copier">
-            <div data-controller="text-copier">
-                <div class="keyname">{{ .Name }}</div>
-                <input class="longfield" type="text" readonly="readonly" data-bookmarklet-copier-target="key"
-                    data-text-copier-target="text" value="{{ .Key }}">
-                <div class="spaced-buttons">
-                    <button data-action="click->text-copier#copy">Copy</button>
-                    <button data-action="click->bookmarklet-copier#copy">Copy Bookmarklet</button>
-                    <div data-controller="are-you-sure">
-                        <button data-are-you-sure-target="initial"
-                            data-action="click->are-you-sure#prime">Revoke</button>
-                        <form data-are-you-sure-target="primary" method="POST" action="/keys/delete/{{ .Id }}"
-                            data-turbo-frame="list" style="display: none">
-                            Are you sure?&nbsp;
-                            <button>Revoke</button></a>&nbsp;
-                            <button type="button" data-action="click->are-you-sure#cancel">Cancel</button>
-                            {{ csrfField $csrfToken }}
-                        </form>
-                    </div>
+<div data-controller="new-dialogue">
+    <form method="POST" action="/keys/create">
+        <input type="text" name="name" placeholder="Key name" value="" autocomplete="off">
+        <input type="submit" value="Create new API key">
+        {{ csrfField $csrfToken }}
+    </form>
+</div>
+{{ range .Keys }}
+<div class="list-entry">
+    <div data-controller="bookmarklet-copier">
+        <div data-controller="text-copier">
+            <div class="keyname">{{ .Name }}</div>
+            <input class="longfield" type="text" readonly="readonly" data-bookmarklet-copier-target="key"
+                data-text-copier-target="text" value="{{ .Key }}">
+            <div class="spaced-buttons">
+                <button data-action="click->text-copier#copy">Copy</button>
+                <button data-action="click->bookmarklet-copier#copy">Copy Bookmarklet</button>
+                <div data-controller="are-you-sure">
+                    <button data-are-you-sure-target="initial" data-action="click->are-you-sure#prime">Revoke</button>
+                    <form data-are-you-sure-target="primary" method="POST" action="/keys/delete/{{ .Id }}"
+                        style="display: none">
+                        Are you sure?&nbsp;
+                        <button>Revoke</button></a>&nbsp;
+                        <button type="button" data-action="click->are-you-sure#cancel">Cancel</button>
+                        {{ csrfField $csrfToken }}
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-    {{ end }}
-</turbo-frame>
+</div>
+{{ end }}
 {{ end }}
