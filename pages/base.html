@@ -52,7 +52,7 @@
 </turbo-frame>
 {{ end }}
 
-{{ define "edit"}}
+{{ define "edit" }}
 <label class="editform__label" for="form-name">Name</label>
 <input class="longfield" id="form-name" type="text" name="name" placeholder="Name" value="{{ .Name }}"
     autocomplete="off">
@@ -72,7 +72,7 @@
         <span class="taglist__tag" data-controller="tag" data-tag-target="self">
             <input type="hidden" name="tag" value="{{ . }}">
             {{ . }}
-            <button class="link" data-action="click->tag#remove" type="button">×</button>
+            <button class="linkbutton" data-action="click->tag#remove" type="button">×</button>
             &nbsp;
         </span>
         {{ end }}

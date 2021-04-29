@@ -20,19 +20,19 @@
 
     application.register("new-dialogue", class extends Stimulus.Controller {
         static get targets() {
-            return ["form", "showButton", "hideButton"]
+            return ["form", "showButton"]
         }
 
         show() {
             this.formTarget.style.display = ""
+            // the "hide" button is inside the "form" target,
+            // so it gets shown & hidden on its own
             this.showButtonTarget.style.display = "none"
-            this.hideButtonTarget.style.display = ""
         }
 
         hide() {
             this.formTarget.style.display = "none"
             this.showButtonTarget.style.display = ""
-            this.hideButtonTarget.style.display = "none"
         }
     })
 
@@ -63,10 +63,10 @@
                 let newTag = document.createElement("div")
                 this.tagListTarget.appendChild(newTag)
                 newTag.outerHTML = `
-                    <span class=taglist__tag data-controller="tag" data-tag-target="self">
-                        <input type=hidden name="${fieldName}" readonly=readonly value="${name}">
+                    <span class="taglist__tag" data-controller="tag" data-tag-target="self">
+                        <input type="hidden" name="${fieldName}" readonly="readonly" value="${name}">
                             ${name}
-                            <button class=link data-action="click->tag#remove" type=button>×</button>
+                            <button class="linkbutton" data-action="click->tag#remove" type="button">×</button>
                             &nbsp;
                     </span>`
             }

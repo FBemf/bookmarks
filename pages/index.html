@@ -33,7 +33,7 @@
                 <span class="taglist__tag" data-controller="tag" data-tag-target="self">
                     <input type="hidden" name="searchTag" readonly="readonly" value="{{ . }}">
                     {{ . }}
-                    <button class="link" data-action="click->tag#remove" type="button">×</button>
+                    <button class="linkbutton" data-action="click->tag#remove" type="button">×</button>
                     &nbsp;
                 </span>
                 {{ end }}
@@ -72,18 +72,16 @@
             </h2>
             <div>
                 <button data-new-dialogue-target="showButton" data-action="click->new-dialogue#show">New</button>
-                <button data-new-dialogue-target="hideButton" data-action="click->new-dialogue#hide"
-                    style="display: none">Cancel</button>
             </div>
         </div>
-        <div data-new-dialogue-target="form" class="list-entry" style="display: none">
-            <div class="editform">
-                <form method="POST" action="/bookmarks/create{{ $searchParams | paramQueryString }}">
-                    {{ template "edit" emptyBookmark }}
-                    <input class="editform__right-button" type="submit" value="Bookmark">
-                    {{ csrfField .CsrfToken }}
-                </form>
-            </div>
+        <div data-new-dialogue-target="form" class="list-entry editform" style="display: none">
+            <button class="editform__cancel linkbutton" data-action="click->new-dialogue#hide">Cancel</button>
+            <div class="spacer"></div>
+            <form method="POST" action="/bookmarks/create{{ $searchParams | paramQueryString }}">
+                {{ template "edit" emptyBookmark }}
+                <input class="editform__left-button" type="submit" value="Bookmark">
+                {{ csrfField .CsrfToken }}
+            </form>
         </div>
     </div>
     {{ range .Bookmarks }}
