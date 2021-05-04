@@ -39,7 +39,7 @@ a {
 .main {
     min-height: 90vh;
     margin: 0px auto;
-    padding: 30px 40px;
+    padding: 30px 4%;
     max-width: 650px;
     font-family: sans-serif;
     color: var(--body-colour);
