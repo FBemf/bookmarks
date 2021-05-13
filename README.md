@@ -6,6 +6,8 @@ I also made it to try out [hotwire][hotwire], which I found very pleasant to use
 
 [hotwire]: https://hotwire.dev/
 
+![screenshot](screenshot.png)
+
 As a web app, it's mostly self-explanatory.
 Serve it with the `serve` command.
 Adding users and changing their passwords is done with the `user` command.
