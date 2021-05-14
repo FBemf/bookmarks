@@ -180,6 +180,7 @@ type resultData struct {
 }
 
 func resultJson(resp http.ResponseWriter, code int) {
+	resp.WriteHeader(code)
 	resp.Header().Set("Content-Type", "text/json; charset=UTF-8")
 	data, err := json.Marshal(resultData{code, http.StatusText(code)})
 	if err != nil {
