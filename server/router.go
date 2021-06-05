@@ -34,7 +34,9 @@ func MakeRouter(templates *templates.Templates, static fs.FS, ds *datastore.Data
 
 	routeProtected(router, templates, ds)
 
-	return RequestLogger{router}
+	return RequestLogger{
+		SecureHeadersMiddleware{router},
+	}
 }
 
 func routeProtected(router *httprouter.Router, templates *templates.Templates, ds *datastore.Datastore) {
@@ -69,6 +71,16 @@ type RequestLogger struct {
 func (rl RequestLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s", r.Method, r.URL)
 	rl.h.ServeHTTP(w, r)
+}
+
+type SecureHeadersMiddleware struct {
+	h http.Handler
+}
+
+func (m SecureHeadersMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
+	w.Header().Set("X-Frame-Options", "DENY")
+	m.h.ServeHTTP(w, r)
 }
 
 func auth(ds *datastore.Datastore, loginPath string) sessionMiddleware {
