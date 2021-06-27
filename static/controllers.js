@@ -110,26 +110,24 @@
             }
             textElement.innerText = `
 javascript:(() => {
-let auth = "Bearer ${this.keyTarget.value}";
+let auth = "${this.keyTarget.value}";
+let params = "?auth=" + encodeURIComponent(auth);
 let name = window.prompt("Name", document.title);
 if (name == null) { return; }
+params += "&name=" + encodeURIComponent(name);
 let url = window.prompt("URL", window.location.href);
 if (url == null) { return; }
+params += "&url=" + encodeURIComponent(url);
 let description = window.prompt("Description", "Type some stuff here");
 if (description == null) { return; }
-let tags = [];
+params += "&description=" + encodeURIComponent(description);
 while (true) {
-let got = window.prompt("Add tag?", "");
-if (got == null || got == "") { break; }
-tags.push(got);}
-let queryUrl = "${window.location.protocol}//${window.location.hostname}${port}/api/bookmark";
-fetch(queryUrl, {
-method: "POST",
-headers: { "Authorization": auth },
-body: JSON.stringify({ name: name, url: url, description: description, tags: tags }),
-}).catch((e) => {
-alert("Failed to create bookmark! " + String(e))
-});})()`
+let tag = window.prompt("Add tag?", "");
+if (tag == null || tag == "") { break; }
+params += "&tag=" + encodeURIComponent(tag);}
+let newTabUrl = "https://${window.location.hostname}${port}/api/_bookmarklet" + params;
+let newTab = window.open(newTabUrl, "_blank");
+newTab.focus();})()`
             textElement.select()
             document.execCommand("copy")
             textElement.parentNode.removeChild(textElement)

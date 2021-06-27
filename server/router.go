@@ -30,6 +30,7 @@ func MakeRouter(templates *templates.Templates, static fs.FS, ds *datastore.Data
 	router.POST(apiPrefix+"/bookmark", apiNewBookmark(ds))
 
 	router.GET(apiPrefix+"/export", apiExport(ds))
+	router.GET(apiPrefix+"/_bookmarklet", apiBookmarklet(ds))
 
 	router.ServeFiles("/static/*filepath", http.FS(static))
 

@@ -78,7 +78,6 @@ func deleteKey(templates *templates.Templates, ds *datastore.Datastore) sessionH
 }
 
 type apiNewBookmarkData struct {
-	Auth        string   `json:"auth"`
 	Name        string   `json:"name"`
 	Url         string   `json:"url"`
 	Description string   `json:"description"`
@@ -94,6 +93,39 @@ func corsOptions(allow []string) httprouter.Handle {
 		header.Set("Access-Control-Allow-Methods", allowString)
 		header.Set("Allow", allowString)
 		resp.WriteHeader(http.StatusNoContent)
+	}
+}
+
+func apiBookmarklet(ds *datastore.Datastore) httprouter.Handle {
+	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		err := req.ParseForm()
+		if err != nil {
+			ErrorPage(resp, http.StatusBadRequest)
+			return
+		}
+		authToken := req.Form.Get("auth")
+		_, allowed, err := ds.CheckKey(authToken)
+		if err != nil {
+			resultJson(resp, http.StatusInternalServerError)
+			log.Printf("authenticating api call: %s", err)
+			return
+		}
+		if allowed {
+			data := apiNewBookmarkData{
+				Name:        req.Form.Get("name"),
+				Url:         req.Form.Get("url"),
+				Description: req.Form.Get("description"),
+				Tags:        req.Form["tag"],
+			}
+			if data.Name == "" || data.Url == "" {
+				ErrorPage(resp, http.StatusBadRequest)
+				return
+			}
+			ds.CreateBookmark(data.Name, ensureProtocol(data.Url), data.Description, data.Tags)
+			http.Redirect(resp, req, "/", http.StatusSeeOther)
+		} else {
+			resultJson(resp, http.StatusForbidden)
+		}
 	}
 }
 

@@ -129,6 +129,11 @@ func editBookmark(templates *templates.Templates, ds *datastore.Datastore) sessi
 
 func submitEditedBookmark(ds *datastore.Datastore) sessionHandler {
 	return func(session datastore.Session, resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		err := req.ParseForm()
+		if err != nil {
+			ErrorPage(resp, http.StatusBadRequest)
+			return
+		}
 		name := req.Form.Get("name")
 		url := req.Form.Get("url")
 		description := req.Form.Get("description")
