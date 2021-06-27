@@ -96,8 +96,8 @@ func corsOptions(allow []string) httprouter.Handle {
 	}
 }
 
-func apiBookmarklet(ds *datastore.Datastore) httprouter.Handle {
-	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
+func addFromBookmarklet(ds *datastore.Datastore) sessionHandler {
+	return func(session datastore.Session, resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		err := req.ParseForm()
 		if err != nil {
 			ErrorPage(resp, http.StatusBadRequest)

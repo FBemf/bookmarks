@@ -125,7 +125,7 @@ while (true) {
 let tag = window.prompt("Add tag?", "");
 if (tag == null || tag == "") { break; }
 params += "&tag=" + encodeURIComponent(tag);}
-let newTabUrl = "https://${window.location.hostname}${port}/api/_bookmarklet" + params;
+let newTabUrl = "https://${window.location.hostname}${port}/_bookmarklet" + params;
 let newTab = window.open(newTabUrl, "_blank");
 newTab.focus();})()`
             textElement.select()

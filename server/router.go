@@ -30,7 +30,6 @@ func MakeRouter(templates *templates.Templates, static fs.FS, ds *datastore.Data
 	router.POST(apiPrefix+"/bookmark", apiNewBookmark(ds))
 
 	router.GET(apiPrefix+"/export", apiExport(ds))
-	router.GET(apiPrefix+"/_bookmarklet", apiBookmarklet(ds))
 
 	router.ServeFiles("/static/*filepath", http.FS(static))
 
@@ -47,10 +46,14 @@ func routeProtected(router *httprouter.Router, templates *templates.Templates, d
 	GET := func(path string, handler sessionHandler) {
 		router.GET(path, auth(handler))
 	}
-	// Note: because we use same-site=lax cookies, all dangerous endpoints have to be POSTs
 	POST := func(path string, handler sessionHandler) {
 		router.POST(path, auth(csrf(handler)))
 	}
+
+	// Note: because we use same-site=lax cookies, dangerous endpoints have to be POSTs.
+	// This endpoint is an exception because it *also* requires an api key to be passed as a url parameter.
+	// (I know, I know, I'd rather pass it as a header too, but the bookmarklet can't do that. It's https-only)
+	GET("/_bookmarklet", addFromBookmarklet(ds))
 
 	GET(bookmarksPrefix, index(templates, ds))
 	GET(bookmarksPrefix+"/edit/:id", editBookmark(templates, ds))

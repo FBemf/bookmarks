@@ -26,7 +26,12 @@ func loginPage(templates *templates.Templates, ds *datastore.Datastore) httprout
 		if failed != "" {
 			data.Message = "Login failed"
 		}
-		data.RedirectTo = redirectTo
+		var err error
+		data.RedirectTo, err = url.QueryUnescape(redirectTo)
+		if err != nil {
+			ErrorPage(resp, http.StatusInternalServerError)
+			return
+		}
 		_, valid, err := authenticateSession(ds, req)
 		if err != nil {
 			ErrorPage(resp, http.StatusInternalServerError)
