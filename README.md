@@ -27,7 +27,6 @@ The only thing that isn't clear from the UI is the API, which has two endpoints:
 - `POST /api/bookmark` takes a json of the format
 `{"name": "Site Name", "url": "https://example.com", "description": "A description", "tags": ["tag1", "tag2"]}`
 and adds that website as a bookmark.
-It was made for use in a javascript bookmarklet, so it permits CORS requests
 - `GET /api/export` returns a json document full of all the bookmarks in the database.
 There is currently no way to import from such a document; at the moment the only way to import bookmarks is to write them into the sqlite database using a script.
 This is mostly just for backups.

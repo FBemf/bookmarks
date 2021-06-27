@@ -84,7 +84,9 @@ type apiNewBookmarkData struct {
 	Tags        []string `json:"tags"`
 }
 
-func corsOptions(allow []string) httprouter.Handle {
+// If you want to set up CORS for a particular route, do it like this.
+// `router.OPTIONS("/example/route", corsOptions([]string{http.MethodPost, http.MethodOptions}))`
+/* func corsOptions(allow []string) httprouter.Handle {
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		allowString := strings.Join(allow, ", ")
 		header := resp.Header()
@@ -94,7 +96,7 @@ func corsOptions(allow []string) httprouter.Handle {
 		header.Set("Allow", allowString)
 		resp.WriteHeader(http.StatusNoContent)
 	}
-}
+}*/
 
 func addFromBookmarklet(ds *datastore.Datastore) sessionHandler {
 	return func(session datastore.Session, resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
