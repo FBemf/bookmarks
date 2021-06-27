@@ -6,12 +6,14 @@ import (
 	"local/bookmarks/templates"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/julienschmidt/httprouter"
 )
 
 type loginData struct {
-	Message string
+	Message    string
+	RedirectTo string
 }
 
 func loginPage(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
@@ -19,10 +21,12 @@ func loginPage(templates *templates.Templates, ds *datastore.Datastore) httprout
 		resp.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		req.ParseForm()
 		failed := req.Form.Get("failed")
+		redirectTo := req.Form.Get("redirectTo")
 		var data loginData
 		if failed != "" {
 			data.Message = "Login failed"
 		}
+		data.RedirectTo = redirectTo
 		_, valid, err := authenticateSession(ds, req)
 		if err != nil {
 			ErrorPage(resp, http.StatusInternalServerError)
@@ -43,6 +47,10 @@ func loginPage(templates *templates.Templates, ds *datastore.Datastore) httprout
 }
 
 func doLogin(templates *templates.Templates, ds *datastore.Datastore) httprouter.Handle {
+	tryAgainUrl, err := url.Parse("/login?failed=1")
+	if err != nil {
+		log.Panicf("tried to parse a bad url path: %s", err)
+	}
 	return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		err := req.ParseForm()
 		if err != nil {
@@ -51,6 +59,7 @@ func doLogin(templates *templates.Templates, ds *datastore.Datastore) httprouter
 		}
 		username := req.Form.Get("username")
 		password := req.Form.Get("password")
+		redirectTo := req.Form.Get("redirectTo")
 		userId, allowed, err := ds.AuthenticateUser(username, password)
 		if err != nil {
 			ErrorPage(resp, http.StatusInternalServerError)
@@ -65,9 +74,14 @@ func doLogin(templates *templates.Templates, ds *datastore.Datastore) httprouter
 				return
 			}
 			http.SetCookie(resp, &cookie)
-			http.Redirect(resp, req, "/", http.StatusSeeOther)
+			log.Printf("redirecting to %s", redirectTo)
+			http.Redirect(resp, req, redirectTo, http.StatusSeeOther)
 		} else {
-			http.Redirect(resp, req, "/login?failed=1", http.StatusSeeOther)
+			redirectUrl := tryAgainUrl
+			q := redirectUrl.Query()
+			q.Set("redirectTo", redirectTo)
+			redirectUrl.RawQuery = q.Encode()
+			http.Redirect(resp, req, redirectUrl.String(), http.StatusSeeOther)
 		}
 	}
 }

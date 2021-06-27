@@ -10,6 +10,7 @@
 <form action="/login" method="POST">
     <input type="text" name="username" placeholder="Username">
     <input type="password" name="password" placeholder="Password" value="">
+    <input type="hidden" name="redirectTo" value="{{ .RedirectTo }}">
     <input type="submit" value="Login">
 </form>
 <p class=login-failed>{{ .Message }}</p>

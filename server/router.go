@@ -6,6 +6,7 @@ import (
 	"local/bookmarks/templates"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -41,6 +42,7 @@ func MakeRouter(templates *templates.Templates, static fs.FS, ds *datastore.Data
 
 func routeProtected(router *httprouter.Router, templates *templates.Templates, ds *datastore.Datastore) {
 	auth := auth(ds, loginPrefix)
+
 	GET := func(path string, handler sessionHandler) {
 		router.GET(path, auth(handler))
 	}
@@ -84,7 +86,10 @@ func (m SecureHeadersMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Reques
 }
 
 func auth(ds *datastore.Datastore, loginPath string) sessionMiddleware {
-	redirecter := http.RedirectHandler(loginPath, http.StatusSeeOther)
+	loginUrl, err := url.Parse(loginPath)
+	if err != nil {
+		log.Panicf("illegal login path %s passed to auth: %s", loginPath, err)
+	}
 	return func(h sessionHandler) httprouter.Handle {
 		return func(resp http.ResponseWriter, req *http.Request, params httprouter.Params) {
 			session, valid, err := authenticateSession(ds, req)
@@ -94,7 +99,12 @@ func auth(ds *datastore.Datastore, loginPath string) sessionMiddleware {
 			if valid {
 				h(session, resp, req, params)
 			} else {
-				redirecter.ServeHTTP(resp, req)
+				escapedReturnPath := url.QueryEscape(req.URL.String())
+				redirectUrl := loginUrl
+				q := redirectUrl.Query()
+				q.Set("redirectTo", escapedReturnPath)
+				redirectUrl.RawQuery = q.Encode()
+				http.Redirect(resp, req, redirectUrl.String(), http.StatusSeeOther)
 			}
 		}
 	}
