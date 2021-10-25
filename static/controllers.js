@@ -1,3 +1,5 @@
+import * as Stimulus from "./stimulus.js";
+
 (() => {
     const application = Stimulus.Application.start()
 
